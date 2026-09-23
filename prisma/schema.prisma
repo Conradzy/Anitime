@@ -1,0 +1,727 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// A password change waits here until the user confirms it from their email.
+model PasswordChangeRequest {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash       String    @unique
+  newPasswordHash String
+  expiresAt       DateTime
+  usedAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// What the account is for. Everyone starts as a seller (the original account
+// type); buyers are traders who register to purchase produce.
+enum UserRole {
+  SELLER
+  BUYER
+}
+
+// Buyer trust level. BASIC = registered on their own; VERIFIED = passed the
+// ID + selfie check; COMPANY = admin-approved business (not built yet).
+enum BuyerTier {
+  BASIC
+  VERIFIED
+  COMPANY
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  fullname     String
+  businessname String?
+  product      String
+  email        String  @unique
+  passwordHash String
+
+  role      UserRole   @default(SELLER)
+  buyerTier BuyerTier? // only set for buyers
+
+  phoneNumber   String?   @unique
+  phoneVerified DateTime?
+
+  emailVerified DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // "Verified Seller" badge shown on listings. Flipped by the (future) ID /
+  // profile verification flow; everyone starts unverified.
+  sellerVerified Boolean @default(false)
+
+  verificationCodes     VerificationCode[]
+  passwordChanges       PasswordChangeRequest[]
+  notifications         Notification[]
+  sessions              Session[]
+  listings              Listing[]
+  buyerConversations    Conversation[]         @relation("ConversationBuyer")
+  sellerConversations   Conversation[]         @relation("ConversationSeller")
+  messagesSent          Message[]
+  offersAsBuyer         Offer[]                @relation("OfferBuyer")
+  offersAsSeller        Offer[]                @relation("OfferSeller")
+  purchases             Transaction[]          @relation("TransactionBuyer")
+  sales                 Transaction[]          @relation("TransactionSeller")
+  reviewsReceived       Review[]               @relation("ReviewReviewee")
+  reviewsWritten        Review[]               @relation("ReviewReviewer")
+  profile               UserProfile?
+  residentialAddress    ResidentialAddress?
+  phoneOtps             PhoneOtp[]
+  identityVerifications IdentityVerification[]
+  verificationConsents  VerificationConsent[]
+  savedPaymentMethods   UserPaymentMethod[]
+}
+
+// Short-lived email verification codes (registration, and re-verification on
+// login for accounts that never finished verifying). One user can accumulate
+// several rows over time — old ones are deleted before a new one is issued —
+// so this stays out of the User row instead of living on it as a couple of
+// nullable columns.
+model VerificationCode {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------- marketplace
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  SOLD_OUT
+  PAUSED
+}
+
+// Where buyers find the produce: the farm itself, a shop, or a storage room.
+enum PlaceType {
+  FARM
+  SHOP
+  STORAGE
+}
+
+enum PriceType {
+  NEGOTIABLE
+  FIXED
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+  CASH_ON_PICKUP
+  GCASH
+  MAYA
+  BANK_TRANSFER
+}
+
+// One row per product. A farmer can publish several products in one posting
+// session; they share a batchId but each is its own independent listing that
+// buyers chat about and negotiate separately.
+model Listing {
+  id       Int     @id @default(autoincrement())
+  sellerId Int
+  seller   User    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  batchId  String? // groups listings created in the same posting session
+
+  crop              String
+  variety           String
+  unit              String    @default("kg")
+  // What the farmer originally posted vs. what is still unsold. Accepting an
+  // offer decrements availableQuantity; quantity is never overwritten.
+  quantity          Decimal   @db.Decimal(12, 3)
+  availableQuantity Decimal   @db.Decimal(12, 3)
+  // The listed price is never overwritten by negotiation: agreed prices live
+  // on Offer / Transaction.
+  unitPrice         Decimal   @db.Decimal(12, 2)
+  priceType         PriceType @default(NEGOTIABLE)
+
+  paymentMethods PaymentMethod[]
+  description    String?
+  location       String
+  // How the seller will hand this over. Chosen when the product is posted so
+  // an offer doesn't have to re-open the question.
+  fulfillment    ListingFulfillment @default(BOTH)
+  placeType      PlaceType       @default(FARM)
+  placeName      String? // e.g. "Santos Family Farm" or "Bajada Warehouse"
+  addressDetails String? // street, barangay, landmark — anything that helps find it
+  latitude       Float? // pin chosen on the map (or device location)
+  longitude      Float?
+  status         ListingStatus   @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  photos        ListingPhoto[]
+  conversations Conversation[]
+  offers        Offer[]
+  transactions  Transaction[]
+
+  @@index([sellerId, status])
+  @@index([status, createdAt])
+}
+
+// Pictures of a listing. The file itself lives in storage (Supabase Storage
+// bucket "listing-photos", or the local .uploads folder in development); this
+// row keeps its address. position 0 is the main photo.
+model ListingPhoto {
+  id          Int      @id @default(autoincrement())
+  listingId   Int
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url         String
+  storagePath String
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([listingId])
+}
+
+// A star rating one party of a completed deal gives the other. Both the buyer
+// and the seller can review each other once, so `revieweeId` is whoever is
+// being rated. The average shown on a profile is the mean of these.
+model Review {
+  id         Int  @id @default(autoincrement())
+  revieweeId Int
+  reviewee   User @relation("ReviewReviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
+  reviewerId Int
+  reviewer   User @relation("ReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  transactionId Int?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  rating    Int // 1..5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([transactionId, reviewerId])
+  @@index([revieweeId])
+}
+
+// ------------------------------------------------------------------ messaging
+
+// A chat is always about one specific listing between one buyer and the seller.
+model Conversation {
+  id        Int     @id @default(autoincrement())
+  listingId Int
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId   Int
+  buyer     User    @relation("ConversationBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId  Int
+  seller    User    @relation("ConversationSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  lastMessageAt DateTime @default(now())
+
+  messages Message[]
+  offers   Offer[]
+
+  @@unique([listingId, buyerId])
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+enum MessageType {
+  TEXT
+  OFFER
+  SYSTEM
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       Int?
+  sender         User?        @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  type    MessageType @default(TEXT)
+  body    String?
+  offerId Int?        @unique // set when type = OFFER: the offer card shown in chat
+  offer   Offer?      @relation(fields: [offerId], references: [id], onDelete: SetNull)
+
+  attachments MessageAttachment[]
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@index([conversationId, createdAt])
+}
+
+// ---------------------------------------------------------------- negotiation
+
+// What a listing allows; an individual deal is always one or the other.
+enum ListingFulfillment {
+  PICKUP
+  DELIVERY
+  BOTH
+}
+
+enum Fulfillment {
+  DELIVERY // the seller brings it to the buyer
+  PICKUP // the buyer collects it from the seller
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COUNTERED
+  WITHDRAWN
+  EXPIRED
+}
+
+enum OfferSide {
+  BUYER
+  SELLER
+}
+
+// Every offer and counteroffer is kept, linked by parentOfferId, so the whole
+// negotiation history survives.
+model Offer {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  listingId      Int
+  listing        Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId        Int
+  buyer          User         @relation("OfferBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId       Int
+  seller         User         @relation("OfferSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  quantity    Decimal @db.Decimal(12, 3)
+  unit        String  @default("kg")
+  unitPrice   Decimal @db.Decimal(12, 2)
+  totalAmount Decimal @db.Decimal(14, 2)
+  message     String?
+
+  fulfillment  Fulfillment @default(PICKUP)
+  scheduledAt  DateTime? // agreed date and time of the delivery / pickup
+  // Where the buyer is (delivery drop-off, or the pickup trip's starting point).
+  buyerLat     Float?
+  buyerLng     Float?
+  buyerAddress String?
+
+  status        OfferStatus @default(PENDING)
+  proposedBy    OfferSide
+  parentOfferId Int?
+  parentOffer   Offer?      @relation("OfferChain", fields: [parentOfferId], references: [id], onDelete: SetNull)
+  counters      Offer[]     @relation("OfferChain")
+
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  chatMessage Message?
+  transaction Transaction?
+
+  @@index([conversationId])
+  @@index([listingId])
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+enum DeliveryStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+}
+
+enum TransactionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// Created when an offer is accepted. Copies the final agreed terms so later
+// edits to the listing or offer can't change what was agreed.
+model Transaction {
+  id              Int    @id @default(autoincrement())
+  transactionCode String @unique // e.g. ANI-00142
+
+  listingId Int
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  offerId   Int     @unique
+  offer     Offer   @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  buyerId   Int
+  buyer     User    @relation("TransactionBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  sellerId  Int
+  seller    User    @relation("TransactionSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+
+  quantity        Decimal @db.Decimal(12, 3)
+  unit            String  @default("kg")
+  agreedUnitPrice Decimal @db.Decimal(12, 2)
+  totalAmount     Decimal @db.Decimal(14, 2)
+
+  paymentMethod  PaymentMethod?
+  paymentStatus  PaymentStatus     @default(UNPAID)
+  deliveryStatus DeliveryStatus    @default(PENDING)
+  status         TransactionStatus @default(ACTIVE)
+
+  // How and when the goods change hands, and the route between the two places.
+  fulfillment Fulfillment @default(PICKUP)
+  scheduledAt DateTime?
+  originLat   Float? // the product's location
+  originLng   Float?
+  originLabel String?
+  destLat     Float? // the buyer's location
+  destLng     Float?
+  destLabel   String?
+  distanceKm  Decimal?    @db.Decimal(8, 2)
+  routePath   Json? // [[lat, lng], ...] along the road
+  routeSource String? // "road" or "straight" (an estimate)
+
+  // Who has confirmed what. The deal is COMPLETED once the seller has
+  // confirmed the goods were handed over and paid for AND the buyer has
+  // confirmed they were received.
+  sellerDeliveredAt DateTime?
+  buyerConfirmedAt  DateTime?
+  paidAt            DateTime?
+
+  createdAt   DateTime  @default(now())
+  acceptedAt  DateTime  @default(now())
+  completedAt DateTime?
+  cancelledAt DateTime?
+
+  reviews Review[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+// One row per signed-in browser. The login cookie carries this row's id, and
+// every request checks the row still exists — so logging out (which deletes
+// it) ends that login immediately, even if the cookie is copied elsewhere.
+model Session {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ======================================================= identity verification
+
+enum OtpPurpose {
+  PHONE_VERIFICATION
+  PHONE_CHANGE
+}
+
+// One line in the bell menu: something happened that this person should know
+// about. Written by the routes that cause it (an offer, a delivery step, a
+// review, a verification decision) and marked read when the menu is opened.
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String?
+  /** Where clicking it goes, e.g. "/deliveries?t=12" or "/messages?c=3". */
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+enum NotificationType {
+  OFFER
+  DEAL
+  DELIVERY
+  PAYMENT
+  REVIEW
+  VERIFICATION
+  SYSTEM
+}
+
+enum OtpStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  CANCELLED
+}
+
+enum VerificationStatus {
+  PENDING
+  IN_PROGRESS
+  IN_REVIEW
+  APPROVED
+  DECLINED
+  EXPIRED
+  CANCELLED
+}
+
+enum IdType {
+  PHILSYS
+}
+
+enum DocumentStatus {
+  PENDING
+  CAPTURED
+  IN_REVIEW
+  APPROVED
+  DECLINED
+}
+
+enum LivenessMethod {
+  PASSIVE
+  ACTIVE
+}
+
+enum ConsentType {
+  IDENTITY_VERIFICATION
+  BIOMETRIC_VERIFICATION
+  PRIVACY_NOTICE
+}
+
+enum VerificationEventType {
+  VERIFICATION_STARTED
+  DOCUMENT_SCANNED
+  DOCUMENT_VERIFIED
+  LIVENESS_STARTED
+  LIVENESS_COMPLETED
+  FACE_MATCH_STARTED
+  FACE_MATCH_COMPLETED
+  VERIFICATION_SUBMITTED
+  VERIFICATION_APPROVED
+  VERIFICATION_DECLINED
+  VERIFICATION_EXPIRED
+}
+
+enum PaymentMethodStatus {
+  ACTIVE
+  EXPIRED
+  REMOVED
+}
+
+// Private personal details, kept off the User row because buyers never see
+// them and most accounts never fill them in.
+model UserProfile {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  birthdate       DateTime? @db.Date
+  sex             String?   @db.VarChar(10)
+  profilePhotoUrl String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// PRIVATE. Never exposed through listings or buyer-facing profiles — this is
+// the seller's home address, not the farm location (that lives on Listing).
+model ResidentialAddress {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addressLine1 String
+  addressLine2 String?
+  barangay     String
+  municipality String
+  province     String
+  region       String
+  postalCode   String?
+  country      String   @default("Philippines")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// SMS one-time codes. Only the hash is stored, never the code itself.
+model PhoneOtp {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone        String
+  codeHash     String
+  purpose      OtpPurpose @default(PHONE_VERIFICATION)
+  status       OtpStatus  @default(PENDING)
+  expiresAt    DateTime
+  attemptCount Int        @default(0)
+  verifiedAt   DateTime?
+  createdAt    DateTime   @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// One identity-verification attempt. `provider` is "MANUAL" until a real
+// identity provider is connected, at which point its session id goes in
+// providerSessionId and the check rows below are filled from its webhook.
+model IdentityVerification {
+  id                Int                @id @default(autoincrement())
+  userId            Int
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String             @default("MANUAL")
+  providerSessionId String?
+  workflowId        String?
+  idType            IdType             @default(PHILSYS)
+  countryCode       String             @default("PH") @db.Char(2)
+  status            VerificationStatus @default(PENDING)
+  decisionReason    String?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  documentChecks IdentityDocumentCheck[]
+  livenessChecks LivenessCheck[]
+  faceMatches    FaceMatchCheck[]
+  consents       VerificationConsent[]
+  events         VerificationEvent[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+// Result of reading the ID document. Only the last 4 digits of the ID number
+// are kept — never the full number, and never the raw document image.
+model IdentityDocumentCheck {
+  id                     Int                  @id @default(autoincrement())
+  identityVerificationId Int
+  identityVerification   IdentityVerification @relation(fields: [identityVerificationId], references: [id], onDelete: Cascade)
+  documentType           IdType               @default(PHILSYS)
+  documentCountry        String               @default("PH") @db.Char(2)
+  documentValid          Boolean?
+  documentExpired        Boolean?
+  documentNumberLast4    String?              @db.VarChar(4)
+  nameMatch              Boolean?
+  birthdateMatch         Boolean?
+  documentStatus         DocumentStatus       @default(PENDING)
+  providerReference      String?
+  // Photos of the card kept for accountability (storage paths, not URLs).
+  frontImagePath         String?
+  backImagePath          String?
+  nameScore              Decimal?             @db.Decimal(5, 4)
+  // Manual review by the AniTime admin: only a hash of the emailed link token is kept.
+  reviewTokenHash        String?              @unique
+  reviewRequestedAt      DateTime?
+  reviewedAt             DateTime?
+  reviewDecision         String?              @db.VarChar(10)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  @@index([identityVerificationId])
+}
+
+// Filled by the identity provider once liveness is connected (step 5).
+model LivenessCheck {
+  id                     Int                  @id @default(autoincrement())
+  identityVerificationId Int
+  identityVerification   IdentityVerification @relation(fields: [identityVerificationId], references: [id], onDelete: Cascade)
+  provider               String
+  status                 VerificationStatus   @default(PENDING)
+  livenessPassed         Boolean?
+  livenessMethod         LivenessMethod?
+  confidenceScore        Decimal?             @db.Decimal(5, 4)
+  providerReference      String?
+  selfiePath             String?
+  completedAt            DateTime?
+  createdAt              DateTime             @default(now())
+
+  @@index([identityVerificationId])
+}
+
+// Filled by the identity provider once face match is connected (step 5).
+// matchScore is internal only and never returned to the browser.
+model FaceMatchCheck {
+  id                     Int                  @id @default(autoincrement())
+  identityVerificationId Int
+  identityVerification   IdentityVerification @relation(fields: [identityVerificationId], references: [id], onDelete: Cascade)
+  status                 VerificationStatus   @default(PENDING)
+  faceMatchPassed        Boolean?
+  matchScore             Decimal?             @db.Decimal(5, 4)
+  providerReference      String?
+  selfiePath             String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  @@index([identityVerificationId])
+}
+
+// Proof that the user agreed before their ID was processed.
+model VerificationConsent {
+  id                     Int                   @id @default(autoincrement())
+  userId                 Int
+  user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identityVerificationId Int?
+  identityVerification   IdentityVerification? @relation(fields: [identityVerificationId], references: [id], onDelete: SetNull)
+  consentType            ConsentType
+  consentVersion         String
+  consentGiven           Boolean               @default(true)
+  consentedAt            DateTime              @default(now())
+  ipAddress              String?               @db.Inet
+  createdAt              DateTime              @default(now())
+
+  @@index([userId])
+}
+
+// Audit trail. metadata holds non-sensitive debugging detail only — never
+// ID numbers, OTP codes or biometric data.
+model VerificationEvent {
+  id                     Int                   @id @default(autoincrement())
+  identityVerificationId Int
+  identityVerification   IdentityVerification  @relation(fields: [identityVerificationId], references: [id], onDelete: Cascade)
+  provider               String                @default("ANITIME")
+  eventType              VerificationEventType
+  providerEventId        String?
+  status                 VerificationStatus?
+  metadata               Json?
+  createdAt              DateTime              @default(now())
+
+  @@index([identityVerificationId])
+}
+
+// Tokenised cards only. The full number, CVV and PIN are never received by
+// this server, let alone stored — the payment provider tokenises them.
+model UserPaymentMethod {
+  id                      Int                 @id @default(autoincrement())
+  userId                  Int
+  user                    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider                String
+  providerCustomerId      String?
+  providerPaymentMethodId String
+  type                    String              @default("CARD")
+  brand                   String?
+  last4                   String?             @db.VarChar(4)
+  expMonth                Int?
+  expYear                 Int?
+  cardholderName          String?
+  isDefault               Boolean             @default(false)
+  status                  PaymentMethodStatus @default(ACTIVE)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  @@index([userId])
+}
+
+// Pictures sent in a chat (product photos, proof of delivery, ...). The files
+// live in storage; this row keeps their address.
+model MessageAttachment {
+  id          Int      @id @default(autoincrement())
+  messageId   Int
+  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  url         String
+  storagePath String
+  createdAt   DateTime @default(now())
+
+  @@index([messageId])
+}

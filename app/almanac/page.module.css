@@ -1,0 +1,638 @@
+.shell {
+  display: grid;
+  grid-template-columns: var(--cols) minmax(0, 1fr);
+  min-height: 100vh;
+  background: #f6f5ef;
+  transition: grid-template-columns 0.3s ease;
+}
+
+.content {
+  min-width: 0;
+  padding: clamp(18px, 2.2vw, 28px) clamp(16px, 2.4vw, 30px) 60px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.8vw, 20px);
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: clamp(24px, 2.8vw, 31px);
+  line-height: 1.08;
+  letter-spacing: -0.034em;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.pageSubtitle {
+  margin: 8px 0 0;
+  max-width: 62ch;
+  font-size: 14.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: #4b5c53;
+  text-wrap: pretty;
+}
+
+.cropGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(8px, 1vw, 12px);
+}
+
+.cropBtn {
+  text-align: left;
+  border: 1px solid var(--cb-border);
+  background: var(--cb-bg);
+  border-radius: 18px;
+  padding: 12px;
+  cursor: pointer;
+  min-width: 0;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+
+.cropImgWrap {
+  display: grid;
+  place-items: center;
+  height: 68px;
+}
+
+.cropImg {
+  max-height: 68px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.cropName {
+  display: block;
+  margin-top: 9px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #062f24;
+}
+
+.cropMeta {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #6a7a71;
+}
+
+.cropCue {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2f6b45;
+}
+
+.typesSection {
+  background: #062f24;
+  border: 1px solid rgba(6, 47, 36, 0.14);
+  border-radius: 22px;
+  padding: clamp(18px, 2vw, 24px);
+  animation: slideIn 0.3s ease both;
+  box-shadow: 0 26px 44px -36px rgba(6, 47, 36, 0.7);
+}
+
+.typesHeadRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.typesIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 17px;
+  background: rgba(246, 245, 239, 0.1);
+  border: 1px solid rgba(167, 198, 65, 0.35);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.typesIconImg {
+  max-width: 40px;
+  max-height: 40px;
+  object-fit: contain;
+}
+
+.typesTitleWrap {
+  min-width: 0;
+}
+
+.typesKicker {
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #a7c641;
+}
+
+.typesTitle {
+  margin: 4px 0 0;
+  font-size: clamp(19px, 2.1vw, 23px);
+  line-height: 1.1;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+  color: #f6f5ef;
+}
+
+.typesHint {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: #a9bbae;
+}
+
+.typesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.typeBtn {
+  text-align: left;
+  border: 1px solid var(--tb-border);
+  background: var(--tb-bg);
+  border-radius: 16px;
+  padding: 13px;
+  cursor: pointer;
+  min-width: 0;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.typeTopRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.typeName {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #062f24;
+  min-width: 0;
+}
+
+.type3dBadge {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #2f6b45;
+  background: #f1f5e4;
+  border: 1px solid rgba(167, 198, 65, 0.5);
+  border-radius: 999px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+
+.typePrice {
+  display: block;
+  margin-top: 7px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.026em;
+  color: #062f24;
+}
+
+.typeNote {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #6a7a71;
+  text-wrap: pretty;
+}
+
+.studioGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(14px, 1.6vw, 18px);
+  align-items: stretch;
+  animation: slideIn 0.3s ease both;
+}
+
+.viewerCard {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  min-height: 440px;
+  box-shadow: 0 30px 50px -38px rgba(6, 47, 36, 0.45);
+}
+
+.viewerGradient1 {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% -10%, #ffffff, #f4f5ee 58%, #e6e9dc 100%);
+}
+
+.viewerGradient2 {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  background: linear-gradient(180deg, rgba(6, 47, 36, 0), rgba(6, 47, 36, 0.07));
+}
+
+.canvasHost {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+}
+
+.viewerBadgesRow {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.modelLabelBadge {
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #2f6b45;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+.dragHintBadge {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #6a7a71;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6a7a71;
+}
+
+.viewerOverlayRow {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dayBig {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: #062f24;
+}
+
+.monthLabelText {
+  font-size: 13px;
+  font-weight: 400;
+  color: #6a7a71;
+}
+
+.phaseChip {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: #062f24;
+  background: var(--chip-bg);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+.stageNoteText {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #062f24;
+}
+
+.stageChipBadge {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: #062f24;
+  background: #a7c641;
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+.sideCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.infoCard {
+  background: #ffffff;
+  border: 1px solid rgba(6, 47, 36, 0.09);
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.infoCardFlex {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid rgba(6, 47, 36, 0.09);
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.infoKicker {
+  font-size: 11.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #6a7a71;
+}
+
+.infoKickerGreen {
+  font-size: 11.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #2f6b45;
+}
+
+.infoTitle {
+  margin: 6px 0 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+  color: #062f24;
+}
+
+.infoBody {
+  margin: 7px 0 0;
+  font-size: 14px;
+  line-height: 1.62;
+  font-weight: 300;
+  color: #4b5c53;
+  text-wrap: pretty;
+}
+
+.infoBodyDark {
+  margin: 7px 0 0;
+  font-size: 14px;
+  line-height: 1.62;
+  font-weight: 400;
+  color: #062f24;
+  text-wrap: pretty;
+}
+
+.methodsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.methodCard {
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fdfdfb;
+}
+
+.methodName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.methodTime {
+  margin-top: 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #2f6b45;
+}
+
+.methodText {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 400;
+  color: #6a7a71;
+  text-wrap: pretty;
+}
+
+.stepsList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.stepRow {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.stepNumBadge {
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  background: #f1f5e4;
+  border: 1px solid rgba(167, 198, 65, 0.5);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2f6b45;
+}
+
+.stepContent {
+  min-width: 0;
+}
+
+.stepTopRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stepName {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #062f24;
+}
+
+.stepTime {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2f6b45;
+}
+
+.stepText {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: #4b5c53;
+  text-wrap: pretty;
+}
+
+.calloutBox {
+  margin-top: 16px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: #f6f9ec;
+  border: 1px solid rgba(167, 198, 65, 0.45);
+}
+
+.viewingRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(6, 47, 36, 0.08);
+  flex-wrap: wrap;
+}
+
+.viewingLabel {
+  font-size: 12.5px;
+  color: #6a7a71;
+}
+
+.viewingName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.viewingPrice {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.dayHeadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dayLabelText {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #4b5c53;
+}
+
+.dayCountText {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.rangeInput {
+  margin-top: 14px;
+}
+
+.marksRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.markBtn {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-bg);
+  border-radius: 11px;
+  padding: 8px 4px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.markDay {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.markLabel {
+  display: block;
+  margin-top: 2px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #6a7a71;
+}
+
+.phaseHeadRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.phaseName {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+  color: #062f24;
+}
+
+.phaseRange {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: #6a7a71;
+}
+
+.blockMt14 {
+  margin-top: 14px;
+}
+
+.blockMt16Border {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(6, 47, 36, 0.08);
+}

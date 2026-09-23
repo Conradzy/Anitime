@@ -1,26 +1,351 @@
-@import "tailwindcss";
+/* Ported from the shared <style> block embedded in every AniTime .dc.html
+   export (via the dc-runtime <helmet>). Kept as global CSS since it's the
+   site-wide reset, palette baseline, and shared keyframes/breakpoints. */
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+* {
+  box-sizing: border-box;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  padding: 0;
+  margin: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #f6f5ef;
+  color: #062f24;
+  font-family: var(--font-inter-tight), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: #2f6b45;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #062f24;
+}
+
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes dashRun {
+  to {
+    stroke-dashoffset: -44;
+  }
+}
+
+/* ---- Landing-page-only additions (from AniTime Landing.dc.html's own
+   <helmet><style> block, which is NOT shared with the other pages) ---- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+[data-hscroll] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+[data-hscroll]::-webkit-scrollbar {
+  display: none;
+  height: 0;
+}
+
+[data-reveal] {
+  transition:
+    opacity 0.95s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.95s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-11px) rotate(0.6deg);
+  }
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate3d(14px, -26px, 0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.25;
+  }
+}
+
+@keyframes caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Landing page's own dashRun/pulseRing timings differ from the shared ones
+   above, so they're kept under distinct names to avoid clashing with the
+   Deliveries/Dashboard/etc. chrome that already relies on the shared ones. */
+@keyframes dashRunLg {
+  to {
+    stroke-dashoffset: -260;
+  }
+}
+
+@keyframes pulseRingLg {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  [data-desk] {
+    display: none !important;
+  }
+  [data-mob] {
+    display: flex !important;
+  }
+}
+
+/* ---- Auth-page-only keyframes (from AniTime Auth.dc.html's own
+   <helmet><style> block) ---- */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes veilIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* CSS-only focus rings for form fields (native :focus needs no JS, unlike
+   the mouse-driven Hover component used for :hover). */
+.auth-field:focus {
+  border-color: #2f6b45;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(167, 198, 65, 0.28);
+}
+.auth-code:focus {
+  border-color: #2f6b45;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(167, 198, 65, 0.3);
+}
+
+/* Sidebar "mini" (collapsed) mode, shared by every logged-in page shell */
+[data-side][data-mini='1'] [data-label] {
+  display: none;
+}
+[data-side][data-mini='1'] nav a,
+[data-side][data-mini='1'] [data-foot] {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+[data-side][data-mini='1'] [data-prof] {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+[data-side][data-mini='1'] [data-brand] {
+  justify-content: center;
+}
+[data-side][data-mini='1'] [data-topbar] {
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+}
+
+@media (max-width: 1080px) {
+  [data-panel] {
+    width: min(320px, calc(100% - 32px)) !important;
+  }
+  [data-detail] {
+    left: auto !important;
+    right: 16px !important;
+    margin-left: 0 !important;
+    width: min(320px, calc(100% - 32px)) !important;
+  }
+}
+@media (max-width: 1080px) and (min-width: 721px) {
+  [data-panel] {
+    max-height: calc(60% - 24px) !important;
+  }
+  [data-detail] {
+    top: auto !important;
+    bottom: 16px !important;
+  }
+}
+@media (max-width: 720px) {
+  [data-panel] {
+    max-height: calc(100% - 32px) !important;
+  }
+  [data-detail] {
+    display: none !important;
+  }
+}
+@media (max-width: 1240px) {
+  [data-cols] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 720px) {
+  [data-cropgrid] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 880px) {
+  [data-shell] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [data-side] {
+    display: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition-duration: 0.001s !important;
+  }
+}
+
+/* ---- Almanac-page-only additions (from AniTime Almanac.dc.html's own
+   <helmet><style> block) ---- */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    #a7c641 0%,
+    #a7c641 var(--p, 50%),
+    rgba(6, 47, 36, 0.12) var(--p, 50%),
+    rgba(6, 47, 36, 0.12) 100%
+  );
+  outline: none;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #062f24;
+  border: 3px solid #a7c641;
+  cursor: grab;
+}
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #062f24;
+  border: 3px solid #a7c641;
+  cursor: grab;
+}
+@media (max-width: 1000px) {
+  [data-studio] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Brand logo: grows slightly on hover; text/tile colours never change. */
+.brand-tile {
+  transition: transform 0.25s ease;
+}
+.brand-btn:hover .brand-tile,
+.brand-btn:focus-visible .brand-tile {
+  transform: scale(1.1);
 }

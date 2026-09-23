@@ -1,0 +1,127 @@
+/* Copied from seigaiha-bg.css. Only change: the layer is pinned to its
+   parent panel (position: absolute) instead of the whole viewport. */
+/* =============================================================================
+   seigaiha-bg.css  —  animated seigaiha (青海波) page background
+   -----------------------------------------------------------------------------
+   Drop-in, dependency-free, zero JavaScript. One element, pure CSS.
+
+   Markup (put it anywhere in <body>; it pins itself behind your content):
+
+       <div class="seigaiha" aria-hidden="true"><i></i></div>
+
+   The drift is fixed at 2.50x: one tile every 8.8s, ~19px/second.
+   The travel distance equals exactly one tile width, so the loop is
+   pixel-identical at the wrap — there is no seam and no restart flicker.
+
+   Everything below is driven by custom properties. Override them on
+   `.seigaiha` (or anywhere above it) to retheme without touching this file.
+   ============================================================================= */
+
+.seigaiha {
+  /* -- geometry ------------------------------------------------------------
+     Keep both of these WHOLE pixels and keep the 57:170 ratio. A fractional
+     tile puts the loop point half a pixel off the grid and the hairlines
+     shimmer once per cycle. 170px reads at the reference scale on a 1920px
+     viewport; 134px suits a 1512px laptop; scale both together to taste. */
+  --seigaiha-tile: 150px;
+  --seigaiha-row: 70px;
+
+  /* -- motion --------------------------------------------------------------
+     Seconds for one full tile of travel. 8.8s IS the 2.50x drift.
+     Halve it for 5.00x, double it for 1.25x. */
+  --seigaiha-drift: 8.8s;
+
+  /* -- ground --------------------------------------------------------------- */
+  --seigaiha-top: #082e21;
+  --seigaiha-mid: #062b20;
+  --seigaiha-low: #052718;
+
+  /* Bloom colours, as bare `r, g, b` triples so alpha can be applied below. */
+  --seigaiha-glow-warm: 52, 82, 36;   /* upper-right, olive */
+  --seigaiha-glow-cool: 40, 88, 54;   /* lower-left, cooler */
+
+  /* -- surface -------------------------------------------------------------- */
+  --seigaiha-line-opacity: 0.7;   /* multiplier on the arcs; 0 hides them */
+  --seigaiha-grain: 0.038;      /* film grain; 0 disables */
+  --seigaiha-vignette: 0.34;    /* edge falloff; 0 disables */
+
+  /* -- stacking -------------------------------------------------------------
+     -1 drops it behind every positioned and unpositioned child of <body>.
+     If your <body> or <html> paints its own background it will cover this —
+     set that to `transparent`, or change this to 0 and give your content
+     `position: relative; z-index: 1`. */
+  --seigaiha-layer: 0;
+
+  position: absolute;
+  inset: 0;
+  z-index: var(--seigaiha-layer);
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(112% 88% at 82% -12%,
+      rgba(var(--seigaiha-glow-warm), 0.95) 0%,
+      rgba(var(--seigaiha-glow-warm), 0.5) 26%,
+      rgba(var(--seigaiha-glow-warm), 0) 58%),
+    radial-gradient(100% 88% at -10% 110%,
+      rgba(var(--seigaiha-glow-cool), 0.95) 0%,
+      rgba(var(--seigaiha-glow-cool), 0.48) 28%,
+      rgba(var(--seigaiha-glow-cool), 0) 60%),
+    linear-gradient(176deg,
+      var(--seigaiha-top) 0%,
+      var(--seigaiha-mid) 50%,
+      var(--seigaiha-low) 100%);
+}
+
+/* The drifting pattern. Oversized by one tile on every side so the repeat
+   still covers the viewport at the far end of the translation. */
+.seigaiha > i {
+  position: absolute;
+  left: calc(var(--seigaiha-tile) * -1);
+  top: calc(var(--seigaiha-row) * -1);
+  width: calc(100% + var(--seigaiha-tile) * 2);
+  height: calc(100% + var(--seigaiha-row) * 2);
+  opacity: var(--seigaiha-line-opacity);
+  background-repeat: repeat;
+  background-size: var(--seigaiha-tile) var(--seigaiha-row);
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20170%2057'%3E%3Cg%20fill='none'%20stroke='%23a8eeaf'%20stroke-width='1.55'%20stroke-linecap='butt'%20opacity='0.26'%3E%3Cpath%20d='M0%2050H170'/%3E%3Cpath%20d='M12.5%2050A30%2030%200%200%201%2072.5%2050'/%3E%3Cpath%20d='M23.2%2050A19.3%2019.3%200%200%201%2061.8%2050'/%3E%3Cpath%20d='M33.1%2050A9.4%209.4%200%200%201%2051.9%2050'/%3E%3Cpath%20d='M109.3%2050A18.2%2018.2%200%200%201%20145.7%2050'/%3E%3C/g%3E%3C/svg%3E");
+  /* transform-only animation: the compositor runs it off the main thread,
+     at the display's own refresh rate, and layout never reflows. */
+  animation: seigaiha-drift var(--seigaiha-drift) linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+@keyframes seigaiha-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(calc(var(--seigaiha-tile) * -1), 0, 0); }
+}
+
+/* Depth. */
+.seigaiha::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(ellipse 88% 82% at 52% 42%,
+    rgba(2, 18, 13, 0) 52%,
+    rgba(2, 18, 13, var(--seigaiha-vignette)) 100%);
+}
+
+/* Film grain, sitting above the pattern so it reads as one exposed surface. */
+.seigaiha::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: var(--seigaiha-grain);
+  mix-blend-mode: screen;
+  background-repeat: repeat;
+  background-size: 240px 240px;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='240'%3E%3Cfilter%20id='g'%20x='0'%20y='0'%20width='100%25'%20height='100%25'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='3'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='240'%20height='240'%20filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* The pattern still reads perfectly well standing still. */
+@media (prefers-reduced-motion: reduce) {
+  .seigaiha > i { animation: none; }
+}

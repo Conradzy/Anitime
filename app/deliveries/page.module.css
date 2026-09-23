@@ -1,0 +1,993 @@
+.shell {
+  display: grid;
+  grid-template-columns: var(--cols) minmax(0, 1fr);
+  min-height: 100vh;
+  background: #f6f5ef;
+  transition: grid-template-columns 0.3s ease;
+}
+
+.mainCol {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.mapArea {
+  position: relative;
+  height: 100vh;
+  min-height: 520px;
+  overflow: hidden;
+  background: #e9eee0;
+}
+
+.mapWrap {
+  position: absolute;
+  inset: 0;
+  /* Leaflet's own panes/controls carry z-index values up to 1000. Without
+   * this, those can paint above the floating UI below (ETA badge, legend,
+   * zoom buttons, detail card, panel) even though those come later in the
+   * DOM, since they don't set a z-index of their own. Isolating creates a
+   * new stacking context so everything Leaflet does stays contained inside
+   * the map layer instead of competing with its siblings. */
+  isolation: isolate;
+}
+
+/* Leaflet renders its tooltip/pane markup outside this component's own
+ * className scope, so these have to be plain global selectors. */
+.mapWrap :global(.leaflet-tooltip) {
+  font-family: var(--font-inter-tight), system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #062f24;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  border-radius: 8px;
+  padding: 3px 8px;
+  box-shadow: 0 6px 14px -8px rgba(6, 47, 36, 0.4);
+}
+.mapWrap :global(.leaflet-popup-content-wrapper) {
+  border-radius: 12px;
+  font-family: var(--font-inter-tight), system-ui, sans-serif;
+  font-size: 12px;
+  color: #062f24;
+}
+.mapWrap :global(.leaflet-popup-content) {
+  margin: 10px 12px;
+  line-height: 1.5;
+}
+.mapWrap :global(.leaflet-tooltip-top)::before {
+  border-top-color: rgba(255, 255, 255, 0.92);
+}
+
+.etaBadge {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  border-radius: 16px;
+  padding: 11px 14px;
+  box-shadow: 0 18px 30px -22px rgba(6, 47, 36, 0.6);
+}
+
+.etaIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #062f24;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.etaTextWrap {
+  min-width: 0;
+}
+
+.etaLabel {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #6a7a71;
+}
+
+.etaValue {
+  display: block;
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #062f24;
+}
+
+.legendWrap {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: calc(100% - 420px);
+}
+
+.legendChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  border-radius: 999px;
+  padding: 8px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.dotFarm {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #a7c641;
+}
+
+.dotOut {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #2f6b45;
+}
+
+.dotIn {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e0b341;
+}
+
+.dock {
+  position: absolute;
+  left: 16px;
+  bottom: 28px; /* clears the 16px Google attribution strip */
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: calc(100% - 400px);
+}
+
+.dockControls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.layerSwitch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 13px;
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.layerBtn,
+.layerBtnOn {
+  border: 0;
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  color: #4b5c53;
+  background: transparent;
+}
+.layerBtnOn {
+  color: #062f24;
+  background: #a7c641;
+}
+
+.zoomControls {
+  display: flex;
+  flex-direction: row;
+  gap: 7px;
+}
+
+.zoomBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  font-size: 18px;
+  font-weight: 600;
+  color: #062f24;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.resetBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+/* Fixed size: it must not depend on whether the pending-deliveries panel is
+ * open, otherwise minimizing/restoring the panel resizes this card. */
+.detailCard {
+  flex: 0 0 auto;
+  width: 400px;
+  max-width: calc(100vw - 560px);
+  min-width: 320px;
+  background: #ffffff;
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 30px 50px -30px rgba(6, 47, 36, 0.6);
+}
+
+.detailHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detailIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #062f24;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.detailInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.detailTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detailName {
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #062f24;
+}
+
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2f6b45;
+  background: #f1f5e4;
+  border: 1px solid rgba(167, 198, 65, 0.5);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.detailSub {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: #6a7a71;
+}
+
+.detailMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: #4b5c53;
+}
+
+.starsRow {
+  letter-spacing: 0.06em;
+}
+
+.starsOn {
+  color: #a7c641;
+}
+
+.starsOff {
+  color: rgba(6, 47, 36, 0.2);
+}
+
+.ratingText {
+  letter-spacing: 0;
+  color: #6a7a71;
+}
+
+.phoneRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.statCard {
+  background: #f8f9f5;
+  border: 1px solid rgba(6, 47, 36, 0.08);
+  border-radius: 14px;
+  padding: 11px;
+}
+
+.statLabel {
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #6a7a71;
+}
+
+.statValue {
+  margin-top: 5px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #062f24;
+}
+
+.statCardTotal {
+  background: #062f24;
+  border-radius: 14px;
+  padding: 11px;
+}
+
+.statLabelTotal {
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #a9bbae;
+}
+
+.statValueTotal {
+  margin-top: 5px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #a7c641;
+}
+
+.cargoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(6, 47, 36, 0.08);
+  flex-wrap: wrap;
+}
+
+.cargoText {
+  font-size: 13px;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.rateText {
+  font-size: 12.5px;
+  color: #6a7a71;
+}
+
+.messageBtn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #a7c641;
+  color: #062f24;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 15px;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+.messageBtn:hover {
+  transform: translateY(-2px);
+  color: #062f24;
+}
+
+.reopenPanelBtn {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: #ffffff;
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  border-radius: 999px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #062f24;
+  cursor: pointer;
+  box-shadow: 0 20px 34px -24px rgba(6, 47, 36, 0.6);
+}
+.reopenPanelBtn:hover {
+  border-color: #a7c641;
+}
+
+.pendingCountBadge {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #2f6b45;
+  background: #f1f5e4;
+  border: 1px solid rgba(167, 198, 65, 0.5);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.panel {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: min(348px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  border-radius: 22px;
+  box-shadow: 0 30px 50px -30px rgba(6, 47, 36, 0.62);
+  overflow: hidden;
+}
+
+.panelHead {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(6, 47, 36, 0.08);
+}
+
+.panelHeadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #062f24;
+}
+
+.panelHeadRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panelCountBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2f6b45;
+  background: #f1f5e4;
+  border: 1px solid rgba(167, 198, 65, 0.5);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.minimizeBtn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+}
+.minimizeBtn:hover {
+  background: #f8f9f5;
+}
+
+.panelSub {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  font-weight: 300;
+  color: #6a7a71;
+}
+
+.panelList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.itemCard {
+  text-align: left;
+  border: 1px solid var(--item-border);
+  background: var(--item-bg);
+  border-radius: 16px;
+  padding: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+.itemCard:hover {
+  border-color: #a7c641;
+  transform: translateY(-1px);
+}
+
+.itemTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.itemIconWrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--item-icon-bg);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.itemInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.itemCrop {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #062f24;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemBuyer {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6a7a71;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemStatus {
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  color: var(--item-status-fg);
+  background: var(--item-status-bg);
+}
+
+.itemMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+  margin-top: 11px;
+}
+
+.itemMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #4b5c53;
+}
+
+.itemFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(6, 47, 36, 0.07);
+}
+
+.itemFootLabel {
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #6a7a71;
+}
+
+.itemFootValue {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #062f24;
+}
+
+.panelFoot {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(6, 47, 36, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.panelFootLabel {
+  font-size: 12.5px;
+  color: #6a7a71;
+}
+
+.panelFootValue {
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #062f24;
+}
+
+/* ---- deals from the database: person, timeline, actions, reviews ------------ */
+.personImg {
+  border-radius: 14px;
+  object-fit: cover;
+  background: #062f24;
+  flex: 0 0 auto;
+}
+.personInitials {
+  border-radius: 14px;
+  background: #062f24;
+  color: #a7c641;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  flex: 0 0 auto;
+}
+.unverifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7a5a16;
+  background: #f7eccb;
+  border: 1px solid rgba(224, 179, 65, 0.5);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.roleTag {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a7a71;
+  background: #f1f4ec;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 14px;
+}
+.tlDone,
+.tlTodo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.tlDone {
+  color: #2f6b45;
+}
+.tlTodo {
+  color: #a3aea7;
+  font-weight: 500;
+}
+.tlDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  background: #e4edc8;
+  border: 1.5px solid #a7c641;
+  color: #062f24;
+}
+.tlTodo .tlDot {
+  background: #ffffff;
+  border-color: rgba(6, 47, 36, 0.18);
+}
+
+.statValueSm {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #062f24;
+}
+.statSub {
+  margin-top: 1px;
+  font-size: 11.5px;
+  color: #6a7a71;
+}
+
+.haulBox {
+  margin-top: 12px;
+  background: #f8f9f5;
+  border: 1px solid rgba(6, 47, 36, 0.08);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.haulHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.haulTitle {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #6a7a71;
+}
+.vehPills {
+  display: inline-flex;
+  gap: 4px;
+}
+.vehOn,
+.vehOff {
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vehOn {
+  background: #062f24;
+  color: #f6f5ef;
+}
+.vehOff {
+  background: #ffffff;
+  color: #4b5c53;
+  border: 1px solid rgba(6, 47, 36, 0.14);
+}
+.haulRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: #4b5c53;
+}
+.haulRow strong {
+  color: #062f24;
+  font-weight: 600;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.actPrimary,
+.actGhost,
+.actDanger {
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.actPrimary {
+  background: #a7c641;
+  border: 0;
+  color: #062f24;
+}
+.actGhost {
+  background: #ffffff;
+  border: 1.5px solid #a7c641;
+  color: #062f24;
+}
+.actDanger {
+  background: #ffffff;
+  border: 1px solid rgba(180, 70, 47, 0.4);
+  color: #b4462f;
+}
+.actPrimary:hover:not(:disabled),
+.actGhost:hover:not(:disabled),
+.actDanger:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.actPrimary:disabled,
+.actGhost:disabled,
+.actDanger:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.rule {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #6a7a71;
+}
+.actErr {
+  margin-top: 10px;
+  border-radius: 10px;
+  background: #fbe9e4;
+  color: #b4462f;
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+
+.reviewBox {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(6, 47, 36, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reviewTitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #062f24;
+}
+.reviewDone {
+  font-size: 13px;
+  color: #4b5c53;
+}
+.reviewDone strong {
+  color: #a7c641;
+  letter-spacing: 0.06em;
+}
+.starPick {
+  display: flex;
+  gap: 4px;
+}
+.starOn,
+.starOff {
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.starOn {
+  color: #a7c641;
+}
+.starOff {
+  color: rgba(6, 47, 36, 0.18);
+}
+.starOn:hover,
+.starOff:hover {
+  transform: scale(1.15);
+}
+.reviewInput {
+  height: 40px;
+  border: 1px solid rgba(6, 47, 36, 0.14);
+  border-radius: 12px;
+  padding: 0 12px;
+  font-size: 13.5px;
+  color: #062f24;
+  outline: none;
+}
+.reviewInput:focus {
+  border-color: #a7c641;
+  box-shadow: 0 0 0 3px rgba(167, 198, 65, 0.25);
+}
+
+.listNote {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #6a7a71;
+}
+
+.emptyOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  pointer-events: none;
+}
+.emptyCard {
+  pointer-events: auto;
+  max-width: 400px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  border-radius: 24px;
+  padding: 28px 26px;
+  box-shadow: 0 34px 60px -30px rgba(6, 47, 36, 0.6);
+}
+.emptyIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: #f1f5e4;
+  display: inline-grid;
+  place-items: center;
+}
+.emptyTitle {
+  margin: 14px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #062f24;
+}
+.emptyText {
+  margin: 8px 0 18px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #6a7a71;
+}
+.emptyBtn {
+  display: inline-flex;
+  border: 0;
+  border-radius: 12px;
+  background: #a7c641;
+  color: #062f24;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 11px 18px;
+  cursor: pointer;
+}
+.emptyBtn:hover {
+  color: #062f24;
+}
+
+/* the card can now hold actions and a review form: let it scroll, not overflow */
+.detailCard {
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+}

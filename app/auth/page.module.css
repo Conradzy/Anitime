@@ -1,0 +1,1105 @@
+.fieldWrap {
+  position: relative;
+  display: block;
+}
+
+.fieldIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  pointer-events: none;
+}
+
+.inputBase {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px 0 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(6, 47, 36, 0.14);
+  background: #f8f9f5;
+  font-size: 14px;
+  font-weight: 400;
+  color: #062f24;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.inputBasePw {
+  width: 100%;
+  height: 46px;
+  padding: 0 46px 0 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(6, 47, 36, 0.14);
+  background: #f8f9f5;
+  font-size: 14px;
+  font-weight: 400;
+  color: #062f24;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.eyeToggleBtn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.svgDefs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.brandIcon {
+  transition: transform 0.25s ease;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: #f6f5ef;
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.brandImg {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.screenCard {
+  width: 100%;
+  max-width: 472px;
+  animation: riseIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.screenCardWide {
+  width: 100%;
+  max-width: 560px;
+  animation: riseIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.panelKicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.kickerDash {
+  width: 22px;
+  height: 1px;
+  background: #a7c641;
+  display: block;
+}
+
+.kickerLabel {
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #6a7a71;
+}
+
+.screenTitle {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 32px);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.screenSubtitle {
+  margin: 10px 0 22px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: #4b5c53;
+  text-wrap: pretty;
+}
+
+.formCol {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.fieldCaption {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #4b5c53;
+}
+
+.fieldCaptionAlt {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4b5c53;
+}
+
+.forgotLink {
+  font-size: 12px;
+  font-weight: 500;
+  color: #2f6b45;
+}
+.forgotLink:hover {
+  color: #062f24;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.checkboxInput {
+  width: 17px;
+  height: 17px;
+  accent-color: #2f6b45;
+  cursor: pointer;
+  margin: 0;
+}
+
+.checkboxText {
+  font-size: 13px;
+  font-weight: 400;
+  color: #4b5c53;
+}
+
+.checkboxLabelStart {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.checkboxInputTop {
+  width: 17px;
+  height: 17px;
+  accent-color: #2f6b45;
+  cursor: pointer;
+  margin: 2px 0 0;
+}
+
+.termsText {
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #4b5c53;
+}
+
+.termsLink {
+  font-weight: 500;
+  color: #2f6b45;
+}
+
+.dividerRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 6px 0 2px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(6, 47, 36, 0.1);
+}
+
+.dividerText {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8a968e;
+  font-weight: 500;
+}
+
+.googleBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(6, 47, 36, 0.16);
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  color: #062f24;
+  cursor: pointer;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+.googleBtn:hover {
+  border-color: rgba(6, 47, 36, 0.34);
+  box-shadow: 0 12px 22px -16px rgba(6, 47, 36, 0.5);
+  transform: translateY(-1px);
+}
+
+.primarySubmitBtn {
+  margin-top: 4px;
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: #a7c641;
+  color: #062f24;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.primarySubmitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 34px -18px rgba(167, 198, 65, 0.9);
+}
+
+.primarySubmitBtnReg {
+  margin-top: 4px;
+  width: 100%;
+  height: 54px;
+  border: 0;
+  border-radius: 16px;
+  background: #a7c641;
+  color: #062f24;
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.primarySubmitBtnReg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 34px -18px rgba(167, 198, 65, 0.9);
+}
+
+.footerText {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 400;
+  color: #6a7a71;
+}
+
+.footerLink {
+  font-weight: 600;
+  color: #2f6b45;
+}
+.footerLink:hover {
+  color: #062f24;
+}
+
+.nameGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 13px;
+}
+
+.spaceBetweenRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.produceHint {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: #8a968e;
+}
+
+.relativeBox {
+  position: relative;
+}
+
+.produceTrigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 12px 0 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(6, 47, 36, 0.14);
+  background: #f8f9f5;
+  cursor: pointer;
+  position: relative;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+.produceTrigger:hover {
+  border-color: rgba(6, 47, 36, 0.3);
+  background: #ffffff;
+}
+
+.produceLabelText {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 400;
+  color: #062f24;
+}
+
+.chevronIcon {
+  flex: 0 0 auto;
+}
+
+.produceDropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+  background: #ffffff;
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  border-radius: 18px;
+  padding: 8px;
+  max-height: 236px;
+  overflow: auto;
+  box-shadow: 0 26px 44px -22px rgba(6, 47, 36, 0.5);
+  animation: modalIn 0.22s ease both;
+}
+
+.cropOption {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.cropOption:hover {
+  background: #f1f5e4;
+}
+
+.cropCheckbox {
+  width: 19px;
+  height: 19px;
+  border-radius: 6px;
+  border: 1.5px solid var(--cb-border);
+  background: var(--cb-bg);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.cropOptionText {
+  font-size: 14.5px;
+  font-weight: 400;
+  color: #062f24;
+}
+
+.chipsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 2px;
+}
+
+.produceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 999px;
+  background: #f1f5e4;
+  border: 1px solid rgba(167, 198, 65, 0.5);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #062f24;
+}
+
+.chipRemoveBtn {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(6, 47, 36, 0.1);
+  cursor: pointer;
+  padding: 0;
+}
+.chipRemoveBtn:hover {
+  background: rgba(6, 47, 36, 0.22);
+}
+
+.chipRemoveIcon {
+  pointer-events: none;
+}
+
+.doneIcon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto;
+  border-radius: 20px;
+  background: #a7c641;
+  display: grid;
+  place-items: center;
+}
+
+.doneTitle {
+  margin: 22px 0 0;
+  font-size: clamp(26px, 3.1vw, 32px);
+  line-height: 1.08;
+  letter-spacing: -0.032em;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.doneSubtitle {
+  margin: 12px 0 26px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: #4b5c53;
+}
+
+.dashboardBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  height: 54px;
+  border: 0;
+  border-radius: 16px;
+  background: #062f24;
+  color: #f6f5ef;
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.dashboardBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 34px -18px rgba(6, 47, 36, 0.9);
+  color: #f6f5ef;
+}
+
+.modalVeil {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 40px);
+  background: rgba(4, 32, 25, 0.72);
+  backdrop-filter: blur(7px);
+  animation: veilIn 0.35s ease both;
+}
+
+.modalScroll {
+  width: 100%;
+  max-width: 472px;
+  max-height: 100%;
+  overflow: auto;
+  animation: modalIn 0.48s cubic-bezier(0.22, 0.9, 0.32, 1) both;
+}
+
+.modalPanel {
+  position: relative;
+  background: #ffffff;
+  border-radius: 30px;
+  padding: clamp(28px, 4vw, 40px) clamp(24px, 3.4vw, 38px) clamp(30px, 4vw, 38px);
+  box-shadow:
+    0 46px 64px -28px rgba(0, 0, 0, 0.62),
+    0 18px 30px -22px rgba(6, 47, 36, 0.5);
+}
+
+.modalCloseBtn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(6, 47, 36, 0.12);
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+.modalCloseBtn:hover {
+  background: #f8f9f5;
+  border-color: rgba(6, 47, 36, 0.3);
+}
+
+.modalHeadRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding-right: 44px;
+}
+
+.modalHeadIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 17px;
+  background: #f1f5e4;
+  border: 1px solid rgba(167, 198, 65, 0.4);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.modalTitle {
+  margin: 5px 0 0;
+  font-size: clamp(26px, 3.1vw, 32px);
+  line-height: 1.06;
+  letter-spacing: -0.032em;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.modalBody {
+  margin: 0 0 26px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: #4b5c53;
+  text-wrap: pretty;
+}
+
+.modalEmailStrong {
+  font-weight: 600;
+  color: #062f24;
+}
+
+.codeGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(7px, 1.6vw, 11px);
+}
+
+.codeInput {
+  width: 100%;
+  height: 62px;
+  text-align: center;
+  border-radius: 15px;
+  border: 1px solid rgba(6, 47, 36, 0.16);
+  background: #f8f9f5;
+  font-size: 24px;
+  font-weight: 600;
+  color: #062f24;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.errorMsg {
+  margin: 14px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b4462f;
+}
+
+.inlineError {
+  margin: -4px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b4462f;
+}
+
+.verifySubmitBtn {
+  margin-top: 24px;
+  width: 100%;
+  height: 54px;
+  border: 0;
+  border-radius: 16px;
+  background: #a7c641;
+  color: #062f24;
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.verifySubmitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 34px -18px rgba(167, 198, 65, 0.9);
+}
+
+.modalFootRow {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(6, 47, 36, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.resendLabelText {
+  font-size: 13.5px;
+  font-weight: 400;
+  color: #6a7a71;
+}
+
+.resendBtn {
+  border: 1px solid rgba(6, 47, 36, 0.16);
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #062f24;
+  cursor: pointer;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+.resendBtn:hover {
+  border-color: #2f6b45;
+  background: #f8f9f5;
+}
+
+.modalBelowText {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: rgba(246, 245, 239, 0.7);
+}
+
+.changeEmailLink {
+  color: #a7c641;
+  font-weight: 500;
+}
+
+.loadingVeil {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 40px);
+  background: rgba(4, 32, 25, 0.78);
+  backdrop-filter: blur(7px);
+  animation: veilIn 0.3s ease both;
+}
+
+.loadingPanel {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: clamp(30px, 4vw, 38px);
+  text-align: center;
+  box-shadow:
+    0 46px 64px -28px rgba(0, 0, 0, 0.62),
+    0 18px 30px -22px rgba(6, 47, 36, 0.5);
+  animation: modalIn 0.42s cubic-bezier(0.22, 0.9, 0.32, 1) both;
+}
+
+.spinner {
+  display: block;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 3px solid rgba(6, 47, 36, 0.12);
+  border-top-color: #a7c641;
+  animation: spin 0.9s linear infinite;
+}
+
+.loadingTitle {
+  margin: 22px 0 0;
+  font-size: 21px;
+  line-height: 1.15;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+  color: #062f24;
+}
+
+.loadingSubtitle {
+  margin: 9px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: #4b5c53;
+}
+
+.progressTrack {
+  margin-top: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(6, 47, 36, 0.1);
+  overflow: hidden;
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  background: #a7c641;
+  animation: fill 2.5s linear both;
+}
+
+
+/* ===================================================================
+   Split layout: form on the left, moving seigaiha panel on the right.
+   All inputs, buttons and behaviour are unchanged — only their placement.
+   =================================================================== */
+.authMain {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(420px, 40%) minmax(0, 1fr);
+  background: #ffffff;
+}
+
+.formSide {
+  min-width: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(20px, 2.6vw, 36px) clamp(20px, 4.4vw, 68px) clamp(18px, 2vw, 28px);
+  background: #ffffff;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 400;
+  color: #4b5c53;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.backLink:hover {
+  color: #062f24;
+  transform: translateX(-2px);
+}
+
+/* shown only when the right-hand panel is hidden */
+.mobileBrand {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  color: #062f24;
+}
+.mobileBrand:hover {
+  color: #062f24;
+}
+.mobileBrand:hover .brandIcon {
+  transform: scale(1.1);
+}
+.mobileBrandText {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.screenWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 4vh, 48px) 0;
+}
+
+/* the form used to sit on a floating white card; on the white panel it is
+   simply the panel itself */
+.authPanel {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.donePanel {
+  text-align: center;
+  padding: clamp(10px, 2vw, 24px) 0;
+}
+
+.belowPanelText {
+  margin: 20px 0 0;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: #6a7a71;
+}
+
+.sideFooter {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 300;
+  color: #87958d;
+}
+
+/* ------------------------------------------------ right-hand showcase -- */
+.showcase {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  align-self: start;
+  overflow: hidden;
+  color: #f6f5ef;
+  background: #082e21;
+  isolation: isolate;
+}
+
+.showcaseInner {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(26px, 3.2vw, 56px) clamp(26px, 3.4vw, 60px) 0;
+}
+
+.showBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  align-self: flex-start;
+  margin-bottom: clamp(20px, 5.5vh, 64px);
+}
+.showBrandTile {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #f6f5ef;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 14px 26px -14px rgba(0, 0, 0, 0.6);
+}
+.showBrandText {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.showKicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #c4d96b;
+}
+.showKickerDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a7c641;
+  box-shadow: 0 0 0 4px rgba(167, 198, 65, 0.22);
+}
+
+.showTitle {
+  margin: 14px 0 0;
+  max-width: 21ch;
+  font-size: clamp(26px, 2.9vw, 46px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.showText {
+  margin: 14px 0 0;
+  max-width: 46ch;
+  font-size: clamp(13.5px, 1.05vw, 16px);
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(246, 245, 239, 0.78);
+}
+
+/* The dashboard preview floats: rounded, layered shadow, and a slow drift.
+   The panel clips its bottom edge, like a window sliding up from below. */
+.coverStage {
+  /* Pinned to the bottom of the panel and pushed a little past it, so the
+     lower part of the dashboard is cut off. The panel clips it (overflow:
+     hidden) and never scrolls. */
+  position: absolute;
+  left: clamp(26px, 3.4vw, 60px);
+  bottom: calc(-1 * clamp(10px, 7.5vh, 96px));
+  width: min(92%, 900px);
+}
+.coverFloat {
+  border-radius: 22px;
+  overflow: hidden;
+  background: #f6f5ef;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 -6px 40px -8px rgba(196, 217, 107, 0.22),
+    0 70px 110px -30px rgba(0, 0, 0, 0.8),
+    0 34px 54px -26px rgba(2, 18, 13, 0.75);
+  animation: coverFloat 9s ease-in-out infinite;
+  will-change: transform;
+}
+.coverImg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes coverFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  35% {
+    transform: translate3d(5px, -11px, 0) rotate(-0.3deg);
+  }
+  70% {
+    transform: translate3d(-4px, -4px, 0) rotate(0.22deg);
+  }
+}
+
+/* ------------------------------------------------------- responsive -- */
+@media (max-width: 1180px) {
+  .authMain {
+    grid-template-columns: minmax(400px, 46%) minmax(0, 1fr);
+  }
+  .coverStage {
+    width: 94%;
+  }
+}
+
+/* tablets and phones: drop the showcase, centre the form */
+@media (max-width: 900px) {
+  .authMain {
+    /* minmax(0, …) lets the column shrink below its widest field on phones */
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .showcase {
+    display: none;
+  }
+  .mobileBrand {
+    display: inline-flex;
+  }
+  .formSide {
+    align-items: stretch;
+    padding: 18px clamp(18px, 6vw, 40px) 20px;
+  }
+  .screenWrap {
+    padding: clamp(18px, 4vh, 36px) 0;
+  }
+  .screenCard,
+  .screenCardWide {
+    margin-inline: auto;
+  }
+  .sideFooter {
+    text-align: center;
+  }
+  .belowPanelText {
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .formSide {
+    padding-inline: 16px;
+  }
+  .screenTitle {
+    font-size: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coverFloat {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------ Seller / Buyer switch -- */
+.roleTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border-radius: 14px;
+  background: #eef0e8;
+  border: 1px solid rgba(6, 47, 36, 0.06);
+}
+.roleTab {
+  border: 0;
+  border-radius: 11px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6a7a71;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+.roleTab:hover { color: #062f24; }
+.roleTabActive {
+  background: #fff;
+  color: #062f24;
+  font-weight: 600;
+  box-shadow: 0 2px 8px -2px rgba(6, 47, 36, 0.18);
+}
+.roleTab:focus-visible { outline: 2px solid #a7c641; outline-offset: 2px; }

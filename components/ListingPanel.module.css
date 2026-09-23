@@ -1,0 +1,162 @@
+/* Extras for the product side panel. Everything else comes from the same
+   classes the buyer-request panel uses (app/seller-home/page.module.css), so
+   the two panels look identical. */
+
+.photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 20px;
+  object-fit: cover;
+  background: #f1f5e4;
+  border: 1px solid rgba(167, 198, 65, 0.45);
+  flex: 0 0 auto;
+}
+
+.unverifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7a5a16;
+  background: #f7eccb;
+  border: 1px solid rgba(224, 179, 65, 0.5);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.payLine {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #4b5c53;
+}
+.payLine strong {
+  font-weight: 600;
+  color: #062f24;
+}
+
+/* the map slot: same footprint as the schematic map it stands in for */
+.mapSlot {
+  position: relative;
+  isolation: isolate; /* keeps Leaflet's own z-indexes inside the panel */
+  margin-top: 12px;
+  height: 260px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(6, 47, 36, 0.1);
+  background: #eef1e6;
+}
+
+.locBox {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #4b5c53;
+}
+.locBox strong {
+  color: #062f24;
+  font-weight: 600;
+}
+.locActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.locBtn,
+.locBtnGhost {
+  border-radius: 12px;
+  padding: 9px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.locBtn {
+  background: #a7c641;
+  border: 0;
+  color: #062f24;
+}
+.locBtnGhost {
+  background: #ffffff;
+  border: 1px solid rgba(6, 47, 36, 0.2);
+  color: #062f24;
+}
+.locBtn:hover,
+.locBtnGhost:hover {
+  transform: translateY(-1px);
+}
+
+@keyframes lpSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(6, 47, 36, 0.15);
+  border-top-color: #2f6b45;
+  animation: lpSpin 0.75s linear infinite;
+}
+
+.routeNote {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #6a7a71;
+}
+.routeNoteWarn {
+  composes: routeNote;
+  color: #7a5a16;
+}
+
+.capNote {
+  margin: 10px 0 0;
+  border-radius: 12px;
+  background: #f7eccb;
+  color: #7a5a16;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.noReviews {
+  margin-top: 12px;
+  border: 1px dashed rgba(6, 47, 36, 0.2);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #6a7a71;
+}
+
+.negotiateBtnBtn {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.negotiateBtnBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.ownNote {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5c53;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation-duration: 2.4s;
+  }
+}
