@@ -64,6 +64,7 @@ model User {
   notifications         Notification[]
   sessions              Session[]
   listings              Listing[]
+  buyRequests           BuyRequest[]           @relation("BuyRequestBuyer")
   buyerConversations    Conversation[]         @relation("ConversationBuyer")
   sellerConversations   Conversation[]         @relation("ConversationSeller")
   messagesSent          Message[]
@@ -189,6 +190,71 @@ model ListingPhoto {
   @@index([listingId])
 }
 
+enum BuyRequestStatus {
+  ACTIVE // still wants more of it
+  FULFILLED // remainingQuantity reached 0
+  CLOSED // the buyer took it down early
+}
+
+// The mirror of Listing: a buyer posts how much of a crop they want, and
+// sellers respond with offers. A single request is very often filled by
+// several different sellers over time (nobody has to have the whole amount),
+// so accepting an offer only decrements remainingQuantity — the post itself
+// stays up, exactly like a listing's availableQuantity, until it is either
+// fully filled or the buyer closes it.
+model BuyRequest {
+  id      Int  @id @default(autoincrement())
+  buyerId Int
+  buyer   User @relation("BuyRequestBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  crop    String
+  variety String
+  unit    String @default("kg")
+  // What the buyer originally asked for vs. what is still wanted. Accepting an
+  // offer decrements remainingQuantity; quantity is never overwritten.
+  quantity          Decimal   @db.Decimal(12, 3)
+  remainingQuantity Decimal   @db.Decimal(12, 3)
+  // The buyer's budget. Optional — a buyer can also just ask sellers to quote.
+  targetPrice       Decimal?  @db.Decimal(12, 2)
+  priceType         PriceType @default(NEGOTIABLE)
+
+  paymentMethods PaymentMethod[]
+  description    String?
+  // Where the buyer wants it delivered, or where they will travel from to
+  // pick it up — the same idea as a listing's location/pin, mirrored.
+  location  String
+  fulfillment ListingFulfillment @default(BOTH)
+  latitude  Float?
+  longitude Float?
+  neededBy  DateTime? // hoped-for date; informational, not enforced
+  status    BuyRequestStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  photos        BuyRequestPhoto[]
+  conversations Conversation[]
+  offers        Offer[]
+  transactions  Transaction[]
+
+  @@index([buyerId, status])
+  @@index([status, createdAt])
+}
+
+// Pictures of a buy request (e.g. a sample of the grade wanted). Mirrors
+// ListingPhoto exactly.
+model BuyRequestPhoto {
+  id           Int        @id @default(autoincrement())
+  buyRequestId Int
+  buyRequest   BuyRequest @relation(fields: [buyRequestId], references: [id], onDelete: Cascade)
+  url          String
+  storagePath  String
+  position     Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  @@index([buyRequestId])
+}
+
 // A star rating one party of a completed deal gives the other. Both the buyer
 // and the seller can review each other once, so `revieweeId` is whoever is
 // being rated. The average shown on a profile is the mean of these.
@@ -212,15 +278,21 @@ model Review {
 
 // ------------------------------------------------------------------ messaging
 
-// A chat is always about one specific listing between one buyer and the seller.
+// A chat is about one listing OR one buy request (never both) between one
+// buyer and the seller. For a listing, the buyer who is browsing starts it.
+// For a buy request, it is the other way round: a seller who can fulfill it
+// starts the chat, so `buyerId` is still the request's owner and `sellerId`
+// is whoever responded.
 model Conversation {
-  id        Int     @id @default(autoincrement())
-  listingId Int
-  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  buyerId   Int
-  buyer     User    @relation("ConversationBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
-  sellerId  Int
-  seller    User    @relation("ConversationSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  id           Int         @id @default(autoincrement())
+  listingId    Int?
+  listing      Listing?    @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyRequestId Int?
+  buyRequest   BuyRequest? @relation(fields: [buyRequestId], references: [id], onDelete: Cascade)
+  buyerId      Int
+  buyer        User        @relation("ConversationBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId     Int
+  seller       User        @relation("ConversationSeller", fields: [sellerId], references: [id], onDelete: Cascade)
 
   createdAt     DateTime @default(now())
   lastMessageAt DateTime @default(now())
@@ -229,6 +301,7 @@ model Conversation {
   offers   Offer[]
 
   @@unique([listingId, buyerId])
+  @@unique([buyRequestId, sellerId])
   @@index([buyerId])
   @@index([sellerId])
 }
@@ -288,13 +361,15 @@ enum OfferSide {
 }
 
 // Every offer and counteroffer is kept, linked by parentOfferId, so the whole
-// negotiation history survives.
+// negotiation history survives. Exactly one of listingId / buyRequestId is set.
 model Offer {
   id             Int          @id @default(autoincrement())
   conversationId Int
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  listingId      Int
-  listing        Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId      Int?
+  listing        Listing?     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyRequestId   Int?
+  buyRequest     BuyRequest?  @relation(fields: [buyRequestId], references: [id], onDelete: Cascade)
   buyerId        Int
   buyer          User         @relation("OfferBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
   sellerId       Int
@@ -309,9 +384,18 @@ model Offer {
   fulfillment  Fulfillment @default(PICKUP)
   scheduledAt  DateTime? // agreed date and time of the delivery / pickup
   // Where the buyer is (delivery drop-off, or the pickup trip's starting point).
+  // On a listing offer this is asked of the buyer; on a buy-request offer it
+  // is already known (the request's own location) and filled in automatically.
   buyerLat     Float?
   buyerLng     Float?
   buyerAddress String?
+  // Where the seller / the produce is. On a listing offer this is already
+  // known (the listing's own pin) and left null here; on a buy-request offer
+  // the responding seller must supply it, the same way a buyer supplies
+  // buyerLat above.
+  sellerLat     Float?
+  sellerLng     Float?
+  sellerAddress String?
 
   status        OfferStatus @default(PENDING)
   proposedBy    OfferSide
@@ -327,6 +411,7 @@ model Offer {
 
   @@index([conversationId])
   @@index([listingId])
+  @@index([buyRequestId])
 }
 
 enum PaymentStatus {
@@ -348,19 +433,22 @@ enum TransactionStatus {
 }
 
 // Created when an offer is accepted. Copies the final agreed terms so later
-// edits to the listing or offer can't change what was agreed.
+// edits to the listing/buy request or offer can't change what was agreed.
+// Exactly one of listingId / buyRequestId is set.
 model Transaction {
   id              Int    @id @default(autoincrement())
   transactionCode String @unique // e.g. ANI-00142
 
-  listingId Int
-  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
-  offerId   Int     @unique
-  offer     Offer   @relation(fields: [offerId], references: [id], onDelete: Restrict)
-  buyerId   Int
-  buyer     User    @relation("TransactionBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
-  sellerId  Int
-  seller    User    @relation("TransactionSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  listingId    Int?
+  listing      Listing?    @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  buyRequestId Int?
+  buyRequest   BuyRequest? @relation(fields: [buyRequestId], references: [id], onDelete: Restrict)
+  offerId      Int         @unique
+  offer        Offer       @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  buyerId      Int
+  buyer        User        @relation("TransactionBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  sellerId     Int
+  seller       User        @relation("TransactionSeller", fields: [sellerId], references: [id], onDelete: Restrict)
 
   quantity        Decimal @db.Decimal(12, 3)
   unit            String  @default("kg")

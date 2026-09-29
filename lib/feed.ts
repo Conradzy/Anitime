@@ -23,6 +23,30 @@ export type FeedListing = {
   seller: { name: string; verified: boolean; rating: number; reviewCount: number } | null;
 };
 
+// A buyer's want, as returned by /api/buy-requests.
+export type FeedBuyRequest = {
+  id: number;
+  buyerId: number;
+  crop: string;
+  variety: string;
+  unit: string;
+  quantity: number;
+  remainingQuantity: number;
+  targetPrice: number | null;
+  priceType: 'NEGOTIABLE' | 'FIXED';
+  paymentMethods: string[];
+  description: string | null;
+  location: string;
+  fulfillment: 'PICKUP' | 'DELIVERY' | 'BOTH';
+  latitude: number | null;
+  longitude: number | null;
+  neededBy: string | null;
+  photos: string[];
+  status: 'ACTIVE' | 'FULFILLED' | 'CLOSED';
+  createdAt: string;
+  buyer: { name: string; fullname: string; verified: boolean; rating: number; reviewCount: number } | null;
+};
+
 export function timeAgo(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
   if (s < 60) return 'just now';

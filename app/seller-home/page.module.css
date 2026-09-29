@@ -225,6 +225,33 @@
   color: #f6f5ef;
 }
 
+.postBuyBtn {
+  border: 1.5px solid #062f24;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  color: #062f24;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 12.5px 20px;
+  border-radius: 999px;
+  transition: transform 0.3s ease, background 0.25s ease;
+}
+.postBuyBtn:hover {
+  transform: translateY(-2px);
+  background: #f1f5e4;
+}
+
+.searchActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
 .tabsRow {
   display: flex;
   align-items: center;

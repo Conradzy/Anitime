@@ -6,15 +6,16 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/AppSidebar';
 import { CROPS, PAYMENT_LABEL } from '@/lib/crops';
-import { timeAgo, type FeedListing } from '@/lib/feed';
+import { timeAgo, type FeedBuyRequest, type FeedListing } from '@/lib/feed';
 import type { LatLng } from '@/lib/routing';
-import { openPostProduce, LISTING_POSTED_EVENT } from '@/lib/post-produce';
+import { BUY_REQUEST_POSTED_EVENT, LISTING_POSTED_EVENT, openBuyRequest, openPostProduce } from '@/lib/post-produce';
 import Link from 'next/link';
 import { useCurrentUser, getInitials } from '@/lib/use-current-user';
 import styles from './page.module.css';
 
-// The side panel pulls in map code, so it loads only when a product is opened.
+// The side panels pull in extra code, so they load only when something is opened.
 const ListingPanel = dynamic(() => import('@/components/ListingPanel').then((m) => m.ListingPanel), { ssr: false });
+const BuyRequestPanel = dynamic(() => import('@/components/BuyRequestPanel').then((m) => m.BuyRequestPanel), { ssr: false });
 
 /* ---------------------------------------------------------------- data ---- */
 
@@ -58,6 +59,7 @@ const GUIDES: Guide[] = [
 ];
 
 type FeedResponse = { listings: FeedListing[]; page: number; pageSize: number; total: number; totalPages: number; interests: string[] };
+type RequestFeedResponse = { requests: FeedBuyRequest[]; page: number; pageSize: number; total: number; totalPages: number };
 
 const SORT_SET = [
   { key: 'recent', label: 'Most recent' },
@@ -106,6 +108,14 @@ export default function SellerHomePage() {
   const [chatBusy, setChatBusy] = useState<number | null>(null);
   const [chatError, setChatError] = useState('');
 
+  // ---- "Buyers posted" feed: real buy requests, 10 per page ----------------
+  const [reqPageState, setReqPageState] = useState({ filterKey: '', page: 1 });
+  const [reqReloadTick, setReqReloadTick] = useState(0);
+  const [reqFeed, setReqFeed] = useState<{ key: string; data: RequestFeedResponse | null; error: string } | null>(null);
+  const [openRequest, setOpenRequest] = useState<FeedBuyRequest | null>(null);
+  const [respondBusy, setRespondBusy] = useState<number | null>(null);
+  const [respondError, setRespondError] = useState('');
+
   const cropsKey = crops.join(',');
   const filterKey = `${debouncedQ}|${cropsKey}|${sort}`;
   // Changing search, crops or sort starts back at page 1 without an effect.
@@ -113,10 +123,25 @@ export default function SellerHomePage() {
   const feedKey = `${filterKey}|${feedPageNo}|${reloadTick}`;
   const feedLoading = tab === 'listings' && feed?.key !== feedKey;
 
+  const reqFilterKey = debouncedQ;
+  const reqPageNo = reqPageState.filterKey === reqFilterKey ? reqPageState.page : 1;
+  const reqFeedKey = `${reqFilterKey}|${reqPageNo}|${reqReloadTick}`;
+  const reqFeedLoading = tab === 'requests' && reqFeed?.key !== reqFeedKey;
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
     return () => clearTimeout(t);
   }, [q]);
+
+  // A link like "Buyer requests" in the sidebar can land here already on the
+  // right tab, without needing its own route.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const requested = new URLSearchParams(window.location.search).get('tab');
+      if (requested === 'listings' || requested === 'requests') setTab(requested);
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
 
   // Verification progress for the checklist in the right-hand rail.
   useEffect(() => {
@@ -170,6 +195,17 @@ export default function SellerHomePage() {
     return () => window.removeEventListener(LISTING_POSTED_EVENT, onPosted);
   }, []);
 
+  // Same for a newly posted buying request.
+  useEffect(() => {
+    const onPosted = () => {
+      setTab('requests');
+      setReqPageState({ filterKey: '', page: 1 });
+      setReqReloadTick((n) => n + 1);
+    };
+    window.addEventListener(BUY_REQUEST_POSTED_EVENT, onPosted);
+    return () => window.removeEventListener(BUY_REQUEST_POSTED_EVENT, onPosted);
+  }, []);
+
   useEffect(() => {
     if (tab !== 'listings') return;
     let cancelled = false;
@@ -186,6 +222,41 @@ export default function SellerHomePage() {
       cancelled = true;
     };
   }, [tab, feedKey, feedPageNo, debouncedQ, cropsKey, sort]);
+
+  useEffect(() => {
+    if (tab !== 'requests') return;
+    let cancelled = false;
+    const qs = new URLSearchParams({ page: String(reqPageNo), q: debouncedQ });
+    fetch('/api/buy-requests?' + qs.toString())
+      .then(async (r) => ({ ok: r.ok, data: await r.json().catch(() => ({})) }))
+      .then(({ ok, data }) => {
+        if (!cancelled) setReqFeed({ key: reqFeedKey, data: ok ? data : null, error: ok ? '' : (data.error ?? 'Could not load buyer requests.') });
+      })
+      .catch(() => {
+        if (!cancelled) setReqFeed({ key: reqFeedKey, data: null, error: 'Could not reach the server.' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, reqFeedKey, reqPageNo, debouncedQ]);
+
+  async function respondToRequest(buyRequestId: number) {
+    setRespondBusy(buyRequestId);
+    setRespondError('');
+    try {
+      const res = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buyRequestId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? 'Could not start the chat.');
+      router.push('/messages?c=' + data.id);
+    } catch (e) {
+      setRespondError(e instanceof Error ? e.message : 'Could not start the chat.');
+      setRespondBusy(null);
+    }
+  }
 
   async function chatWithSeller(listingId: number) {
     setChatBusy(listingId);
@@ -227,7 +298,9 @@ export default function SellerHomePage() {
   const sortLabel = SORT_SET.filter((o) => o.key === sort)[0].label;
   const feedCount =
     tab === 'requests'
-      ? 'No buyer requests yet'
+      ? !reqFeed?.data
+        ? reqFeed?.error || 'Loading buyer requests…'
+        : reqFeed.data.total + ' buyer request' + (reqFeed.data.total === 1 ? '' : 's') + ' · newest first'
       : !feed?.data
         ? feed?.error || 'Loading products…'
         : feed.data.total + ' products · ' + (feed.data.interests.length ? feed.data.interests.join(', ').toLowerCase() + ' first, then newest' : 'newest first');
@@ -305,9 +378,14 @@ export default function SellerHomePage() {
                 className={`auth-field ${styles.searchInput}`}
               />
             </span>
-            <button type="button" onClick={openPostProduce} className={styles.postProduceBtn}>
-              Post produce <span>+</span>
-            </button>
+            <span className={styles.searchActions}>
+              <button type="button" onClick={openBuyRequest} className={styles.postBuyBtn}>
+                Post a buying request <span>+</span>
+              </button>
+              <button type="button" onClick={openPostProduce} className={styles.postProduceBtn}>
+                Post produce <span>+</span>
+              </button>
+            </span>
           </div>
 
           {/* tabs + sort + saved + filter */}
@@ -420,13 +498,128 @@ export default function SellerHomePage() {
           <div className={styles.feedCountText}>{feedCount}</div>
 
           {tab === 'requests' && (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyStateTitle}>No buyer requests yet</div>
-              <p className={styles.emptyStateText}>
-                When buyers post what they want to buy, their requests will show up here. Meanwhile, browse the
-                products other sellers have posted under “Products posted”.
-              </p>
-            </div>
+            <>
+              {reqFeed?.error && !reqFeed.data && (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyStateTitle}>Could not load buyer requests</div>
+                  <p className={styles.emptyStateText}>{reqFeed.error}</p>
+                </div>
+              )}
+              {!reqFeed && <div className={styles.emptyState}><div className={styles.emptyStateTitle}>Loading buyer requests…</div></div>}
+              {respondError && <div className={styles.chatError}>{respondError}</div>}
+
+              {reqFeed?.data && reqFeed.data.requests.length === 0 && (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyStateTitle}>No buyer requests yet</div>
+                  <p className={styles.emptyStateText}>
+                    When buyers post what they want to buy, their requests show up here. Use “Post a buying request +”
+                    to add the first one, or browse what other sellers have posted under “Products posted”.
+                  </p>
+                </div>
+              )}
+
+              <div className={`${styles.postsList} ${reqFeedLoading ? styles.feedLoading : ''}`}>
+                {reqFeed?.data?.requests.map((r) => {
+                  const stock = CROPS.find((c) => c.name === r.crop)?.img ?? '/images/crops/banana.png';
+                  return (
+                    <div key={r.id} className={styles.feedItem}>
+                      <article
+                        className={`${styles.listingCard} ${styles.listingClickable}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`View request for ${r.crop} — ${r.variety}`}
+                        onClick={() => {
+                          setRespondError('');
+                          setOpenRequest(r);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault();
+                            setRespondError('');
+                            setOpenRequest(r);
+                          }
+                        }}
+                      >
+                        {r.photos[0] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={r.photos[0]} alt={`${r.crop} photo`} className={styles.listingPhotoImg} />
+                        ) : (
+                          <Image src={stock} alt={r.crop} width={74} height={74} className={styles.listingPhotoImg} />
+                        )}
+                        <div className={styles.listingInfo}>
+                          <h3 className={styles.listingName}>
+                            Wants: {r.crop} — {r.variety}
+                          </h3>
+                          <div className={styles.listingStock}>
+                            {r.remainingQuantity.toLocaleString('en-PH')} {r.unit} still wanted
+                            {r.targetPrice ? ` · ${peso(r.targetPrice)} / ${r.unit}` : ' · open to quotes'}
+                            {r.priceType === 'FIXED' ? ' · Fixed budget' : ' · Negotiable'}
+                          </div>
+                          <div className={styles.listingMeta}>
+                            Posted {timeAgo(r.createdAt)} · {r.location}
+                            {r.paymentMethods.length > 0 && ' · Pays via ' + r.paymentMethods.map((m) => PAYMENT_LABEL[m] ?? m).join(', ')}
+                          </div>
+                          <div className={styles.listingSeller}>
+                            {r.buyer?.name ?? 'A buyer'}
+                            <span className={r.buyer?.verified ? styles.tagVerified : styles.tagUnverified}>
+                              {r.buyer?.verified ? '✓ Verified' : 'Unverified'}
+                            </span>
+                            <span className={styles.listingStars}>
+                              {r.buyer?.reviewCount ? (
+                                <>
+                                  <span className={styles.starsOn}>★</span> {r.buyer.rating.toFixed(1)} ({r.buyer.reviewCount})
+                                </>
+                              ) : (
+                                'No reviews yet'
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.chatBtn}
+                          disabled={respondBusy === r.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            respondToRequest(r.id);
+                          }}
+                        >
+                          {respondBusy === r.id ? 'Opening…' : 'Respond with an offer'}
+                        </button>
+                      </article>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {reqFeed?.data && reqFeed.data.total > 0 && (
+                <nav className={styles.pager} aria-label="Buyer request pages">
+                  <span className={styles.pagerInfo}>
+                    Showing {(reqFeed.data.page - 1) * reqFeed.data.pageSize + 1}–
+                    {(reqFeed.data.page - 1) * reqFeed.data.pageSize + reqFeed.data.requests.length} of {reqFeed.data.total}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.pagerBtn}
+                    disabled={reqFeed.data.page <= 1 || reqFeedLoading}
+                    onClick={() => setReqPageState({ filterKey: reqFilterKey, page: reqFeed.data!.page - 1 })}
+                  >
+                    ← Previous
+                  </button>
+                  <span className={styles.pagerPage}>
+                    Page {reqFeed.data.page} of {reqFeed.data.totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.pagerBtn}
+                    disabled={reqFeed.data.page >= reqFeed.data.totalPages || reqFeedLoading}
+                    onClick={() => setReqPageState({ filterKey: reqFilterKey, page: reqFeed.data!.page + 1 })}
+                  >
+                    Next →
+                  </button>
+                </nav>
+              )}
+            </>
           )}
 
           {tab === 'listings' && (
@@ -655,6 +848,16 @@ export default function SellerHomePage() {
           onNegotiate={chatWithSeller}
           negotiating={chatBusy === openListing.id}
           error={chatError}
+        />
+      )}
+      {openRequest && (
+        <BuyRequestPanel
+          key={openRequest.id}
+          request={openRequest}
+          onClose={() => setOpenRequest(null)}
+          onRespond={respondToRequest}
+          responding={respondBusy === openRequest.id}
+          error={respondError}
         />
       )}
     </div>

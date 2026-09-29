@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { notify } from '@/lib/notify';
 import { prisma } from '@/lib/prisma';
+import type { PaymentMethod } from '@/lib/generated/prisma/enums';
 import { requireUser } from '@/lib/marketplace';
-import { planRoute } from '@/lib/deals';
+import { planBuyRequestRoute, planRoute } from '@/lib/deals';
 
 const FULFILL_LABEL = { DELIVERY: 'Delivery', PICKUP: 'Pickup' } as const;
 
@@ -16,12 +17,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const offerId = Number((await params).id);
   const { action } = (await req.json().catch(() => ({}))) as { action?: string };
-  const offer = await prisma.offer.findUnique({ where: { id: offerId }, include: { listing: true } });
+  const offer = await prisma.offer.findUnique({ where: { id: offerId }, include: { listing: true, buyRequest: true } });
   if (!offer || (offer.buyerId !== user.id && offer.sellerId !== user.id)) {
     return NextResponse.json({ error: 'Offer not found.' }, { status: 404 });
   }
   const side = offer.buyerId === user.id ? 'BUYER' : 'SELLER';
   if (offer.status !== 'PENDING') return NextResponse.json({ error: 'This offer was already answered.' }, { status: 409 });
+  // The thing being negotiated over — a seller's listing, or a buyer's request.
+  const crop = offer.listing ? offer.listing.crop : offer.buyRequest!.crop;
 
   const say = (tx: Pick<typeof prisma, 'message' | 'conversation'>, body: string) =>
     Promise.all([
@@ -50,7 +53,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       userId: offer.buyerId === user.id ? offer.sellerId : offer.buyerId,
       type: 'OFFER',
       title: 'Your offer was declined',
-      body: `${user.fullname} declined the offer for ${offer.listing.crop}.`,
+      body: `${user.fullname} declined the offer for ${crop}.`,
       link: `/messages?c=${offer.conversationId}`,
     });
     return NextResponse.json({ ok: true });
@@ -60,37 +63,54 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   // Work out the route now; it is stored with the deal so the Deliveries page
   // can show it instantly, and a routing hiccup can never block the deal.
-  const route = await planRoute(offer.listing, offer).catch(() => ({
-    origin: null, dest: null, distanceKm: null, path: null, source: null,
-  }));
+  const route = offer.listing
+    ? await planRoute(offer.listing, offer).catch(() => ({ origin: null, dest: null, distanceKm: null, path: null, source: null }))
+    : await planBuyRequestRoute(offer.buyRequest!, offer).catch(() => ({ origin: null, dest: null, distanceKm: null, path: null, source: null }));
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // Atomic reserve: only succeeds if enough is still unsold.
-      const reserved = await tx.listing.updateMany({
-        where: { id: offer.listingId, status: 'ACTIVE', availableQuantity: { gte: offer.quantity } },
-        data: { availableQuantity: { decrement: offer.quantity } },
-      });
-      if (reserved.count === 0) throw new Error('Not enough stock left for this offer.');
+      // Atomic reserve: only succeeds if enough is still unsold / unwanted.
+      const reserved = offer.listing
+        ? await tx.listing.updateMany({
+            where: { id: offer.listingId!, status: 'ACTIVE', availableQuantity: { gte: offer.quantity } },
+            data: { availableQuantity: { decrement: offer.quantity } },
+          })
+        : await tx.buyRequest.updateMany({
+            where: { id: offer.buyRequestId!, status: 'ACTIVE', remainingQuantity: { gte: offer.quantity } },
+            data: { remainingQuantity: { decrement: offer.quantity } },
+          });
+      if (reserved.count === 0) throw new Error(offer.listing ? 'Not enough stock left for this offer.' : 'Not enough of this request left for this offer.');
 
-      const left = await tx.listing.findUniqueOrThrow({ where: { id: offer.listingId } });
-      if (Number(left.availableQuantity) <= 0) {
-        await tx.listing.update({ where: { id: left.id }, data: { status: 'SOLD_OUT' } });
+      let paymentMethod: PaymentMethod | null = null;
+      let originLabelFallback = '';
+      if (offer.listing) {
+        const left = await tx.listing.findUniqueOrThrow({ where: { id: offer.listingId! } });
+        if (Number(left.availableQuantity) <= 0) {
+          await tx.listing.update({ where: { id: left.id }, data: { status: 'SOLD_OUT' } });
+        }
+        paymentMethod = left.paymentMethods[0] ?? null;
+        originLabelFallback = left.location;
+      } else {
+        const left = await tx.buyRequest.findUniqueOrThrow({ where: { id: offer.buyRequestId! } });
+        if (Number(left.remainingQuantity) <= 0) {
+          await tx.buyRequest.update({ where: { id: left.id }, data: { status: 'FULFILLED' } });
+        }
+        paymentMethod = left.paymentMethods[0] ?? null;
       }
 
       await tx.offer.update({ where: { id: offerId }, data: { status: 'ACCEPTED', respondedAt: new Date() } });
       const created = await tx.transaction.create({
         data: {
           transactionCode: `TMP-${offerId}`,
-          listingId: offer.listingId, offerId, buyerId: offer.buyerId, sellerId: offer.sellerId,
+          listingId: offer.listingId, buyRequestId: offer.buyRequestId, offerId, buyerId: offer.buyerId, sellerId: offer.sellerId,
           quantity: offer.quantity, unit: offer.unit,
           agreedUnitPrice: offer.unitPrice, totalAmount: offer.totalAmount,
-          paymentMethod: offer.listing.paymentMethods[0] ?? null,
+          paymentMethod,
           fulfillment: offer.fulfillment,
           scheduledAt: offer.scheduledAt,
           originLat: route.origin?.lat ?? null,
           originLng: route.origin?.lng ?? null,
-          originLabel: route.origin?.label ?? offer.listing.location,
+          originLabel: route.origin?.label ?? originLabelFallback,
           destLat: route.dest?.lat ?? null,
           destLng: route.dest?.lng ?? null,
           destLabel: route.dest?.label ?? null,
@@ -116,7 +136,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         userId: offer.buyerId === user.id ? offer.sellerId : offer.buyerId,
         type: 'DEAL',
         title: `Offer accepted — ${result}`,
-        body: `${user.fullname} accepted the offer for ${offer.listing.crop}. It is now on the Deliveries page.`,
+        body: `${user.fullname} accepted the offer for ${crop}. It is now on the Deliveries page.`,
         link: '/deliveries',
       },
     ]);

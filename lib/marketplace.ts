@@ -95,15 +95,18 @@ export function serializeListing(l: ListingRow, seller?: SellerBadge) {
 }
 
 type OfferRow = {
-  id: number; listingId: number; quantity: unknown; unit: string; unitPrice: unknown; totalAmount: unknown;
+  id: number; listingId: number | null; buyRequestId: number | null;
+  quantity: unknown; unit: string; unitPrice: unknown; totalAmount: unknown;
   message: string | null; status: string; proposedBy: string; parentOfferId: number | null; createdAt: Date;
   fulfillment: string; scheduledAt: Date | null; buyerLat: number | null; buyerLng: number | null; buyerAddress: string | null;
+  sellerLat: number | null; sellerLng: number | null; sellerAddress: string | null;
 };
 
 export function serializeOffer(o: OfferRow) {
   return {
     id: o.id,
     listingId: o.listingId,
+    buyRequestId: o.buyRequestId,
     quantity: Number(o.quantity),
     unit: o.unit,
     unitPrice: Number(o.unitPrice),
@@ -118,5 +121,41 @@ export function serializeOffer(o: OfferRow) {
     buyerLat: o.buyerLat,
     buyerLng: o.buyerLng,
     buyerAddress: o.buyerAddress,
+    sellerLat: o.sellerLat,
+    sellerLng: o.sellerLng,
+    sellerAddress: o.sellerAddress,
+  };
+}
+
+type BuyRequestRow = {
+  id: number; buyerId: number; crop: string; variety: string; unit: string;
+  quantity: unknown; remainingQuantity: unknown; targetPrice: unknown; priceType: string;
+  paymentMethods: string[]; description: string | null; location: string; status: string; createdAt: Date;
+  latitude?: number | null; longitude?: number | null; fulfillment?: string; neededBy?: Date | null;
+  photos?: { url: string }[];
+};
+
+export function serializeBuyRequest(r: BuyRequestRow, buyer?: SellerBadge) {
+  return {
+    id: r.id,
+    buyerId: r.buyerId,
+    crop: r.crop,
+    variety: r.variety,
+    unit: r.unit,
+    quantity: Number(r.quantity),
+    remainingQuantity: Number(r.remainingQuantity),
+    targetPrice: r.targetPrice === null || r.targetPrice === undefined ? null : Number(r.targetPrice),
+    priceType: r.priceType,
+    paymentMethods: r.paymentMethods,
+    description: r.description,
+    location: r.location,
+    fulfillment: (r.fulfillment ?? 'BOTH') as 'PICKUP' | 'DELIVERY' | 'BOTH',
+    latitude: r.latitude ?? null,
+    longitude: r.longitude ?? null,
+    neededBy: r.neededBy ? r.neededBy.toISOString() : null,
+    photos: (r.photos ?? []).map((p) => p.url),
+    status: r.status,
+    createdAt: r.createdAt.toISOString(),
+    buyer: buyer ?? null,
   };
 }

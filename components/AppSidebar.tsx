@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { OPEN_POST_PRODUCE_EVENT } from '@/lib/post-produce';
+import { OPEN_BUY_REQUEST_EVENT, OPEN_POST_PRODUCE_EVENT } from '@/lib/post-produce';
 import { preloadDeliveryMap } from '@/lib/preload-delivery-map';
 import { Hover } from './Hover';
 import { cssToStyle } from '@/lib/style';
@@ -14,6 +14,7 @@ import { NotificationsPanel } from './NotificationsPanel';
 
 // Loaded on first open only, so pages don't pay for the modal (or its map).
 const PostProduceModal = dynamic(() => import('./PostProduceModal').then((m) => m.PostProduceModal), { ssr: false });
+const BuyRequestModal = dynamic(() => import('./BuyRequestModal').then((m) => m.BuyRequestModal), { ssr: false });
 
 export type ActiveNav =
   | 'dashboard'
@@ -150,11 +151,22 @@ export function AppSidebar({
     setPostOpen(true);
   }, []);
 
-  // Any page can open the same modal via openPostProduce().
+  const [buyOpen, setBuyOpen] = useState(false);
+  const [buyLoaded, setBuyLoaded] = useState(false);
+  const openBuy = useCallback(() => {
+    setBuyLoaded(true);
+    setBuyOpen(true);
+  }, []);
+
+  // Any page can open the same modals via openPostProduce() / openBuyRequest().
   useEffect(() => {
     window.addEventListener(OPEN_POST_PRODUCE_EVENT, openPost);
-    return () => window.removeEventListener(OPEN_POST_PRODUCE_EVENT, openPost);
-  }, [openPost]);
+    window.addEventListener(OPEN_BUY_REQUEST_EVENT, openBuy);
+    return () => {
+      window.removeEventListener(OPEN_POST_PRODUCE_EVENT, openPost);
+      window.removeEventListener(OPEN_BUY_REQUEST_EVENT, openBuy);
+    };
+  }, [openPost, openBuy]);
 
   const displayName = userName ?? user?.fullname ?? 'Seller';
   const displayInitials = userInitials ?? (user ? getInitials(user.fullname) : '');
@@ -327,7 +339,7 @@ export function AppSidebar({
           />
         )}
         <NavLink
-          href="/seller-home"
+          href="/seller-home?tab=requests"
           title="Buyer requests"
           active={active === 'buyer-requests'}
           icon={
@@ -412,6 +424,7 @@ export function AppSidebar({
         </Hover>
       </div>
       {postLoaded && <PostProduceModal open={postOpen} onClose={() => setPostOpen(false)} seller={user} />}
+      {buyLoaded && <BuyRequestModal open={buyOpen} onClose={() => setBuyOpen(false)} buyer={user} />}
       {bellOpen && <NotificationsPanel onClose={() => setBellOpen(false)} onRead={refreshBadges} />}
     </aside>
   );

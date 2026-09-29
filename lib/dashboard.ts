@@ -25,6 +25,7 @@ function fetchRows(userId: number, since?: Date) {
     },
     include: {
       listing: { select: { crop: true, variety: true } },
+      buyRequest: { select: { crop: true, variety: true } },
       buyer: { select: { fullname: true } },
       seller: { select: { fullname: true } },
     },
@@ -32,15 +33,22 @@ function fetchRows(userId: number, since?: Date) {
   });
 }
 
+/** Every deal is sourced from either a listing or a buy request. */
+function dealCropVariety(t: Pick<Row, 'listing' | 'buyRequest'>) {
+  const s = t.listing ?? t.buyRequest;
+  return { crop: s?.crop ?? '—', variety: s?.variety ?? '—' };
+}
+
 function toRow(t: Row, userId: number): TxnRow {
   const isSeller = t.sellerId === userId;
+  const { crop, variety } = dealCropVariety(t);
   return {
     id: t.id,
     code: t.transactionCode,
     kind: isSeller ? 'SALE' : 'PURCHASE',
     date: (t.completedAt ?? t.acceptedAt ?? t.createdAt).toISOString(),
-    crop: t.listing.crop,
-    variety: t.listing.variety,
+    crop,
+    variety,
     quantity: num(t.quantity),
     unit: t.unit,
     unitPrice: num(t.agreedUnitPrice),
@@ -126,19 +134,20 @@ export async function dashboardData(userId: number, range: Range) {
     if (t.sellerId !== userId || t.status === 'CANCELLED') continue;
     const kg = num(t.quantity) * (t.unit === 'ton' ? 1000 : 1);
     const amount = num(t.totalAmount);
-    const cur = cropMap.get(t.listing.crop) ?? { crop: t.listing.crop, revenue: 0, kg: 0, orders: 0, varieties: [] };
+    const { crop, variety } = dealCropVariety(t);
+    const cur = cropMap.get(crop) ?? { crop, revenue: 0, kg: 0, orders: 0, varieties: [] };
     cur.revenue += amount;
     cur.kg += kg;
     cur.orders += 1;
-    const v = cur.varieties.find((x) => x.variety === t.listing.variety);
+    const v = cur.varieties.find((x) => x.variety === variety);
     if (v) {
       v.revenue += amount;
       v.kg += kg;
       v.orders += 1;
     } else {
-      cur.varieties.push({ variety: t.listing.variety, revenue: amount, kg, orders: 1 });
+      cur.varieties.push({ variety, revenue: amount, kg, orders: 1 });
     }
-    cropMap.set(t.listing.crop, cur);
+    cropMap.set(crop, cur);
   }
   const byCrop = [...cropMap.values()]
     .map((c) => ({ ...c, varieties: c.varieties.sort((a, b) => b.revenue - a.revenue) }))
@@ -147,13 +156,14 @@ export async function dashboardData(userId: number, range: Range) {
   // The delivery or pickup happening soonest, with its route.
   const live = await prisma.transaction.findMany({
     where: { status: 'ACTIVE', OR: [{ buyerId: userId }, { sellerId: userId }] },
-    include: { listing: { select: { crop: true, variety: true } } },
+    include: { listing: { select: { crop: true, variety: true } }, buyRequest: { select: { crop: true, variety: true } } },
     orderBy: [{ scheduledAt: 'asc' }, { id: 'asc' }],
   });
   const next = live.find((t) => t.originLat !== null && t.destLat !== null) ?? live[0] ?? null;
   const vehicle = next ? vehicleFor(num(next.quantity), next.unit) : null;
   const km = next?.distanceKm !== null && next?.distanceKm !== undefined ? num(next.distanceKm) : null;
   const est = km !== null && vehicle ? haulEstimate(km, vehicle, FUEL_PRICE_PER_LITER) : null;
+  const nextCV = next ? dealCropVariety(next) : null;
 
   return {
     range,
@@ -179,8 +189,8 @@ export async function dashboardData(userId: number, range: Range) {
         ? {
             id: next.id,
             code: next.transactionCode,
-            crop: next.listing.crop,
-            variety: next.listing.variety,
+            crop: nextCV!.crop,
+            variety: nextCV!.variety,
             role: next.sellerId === userId ? ('SELLER' as const) : ('BUYER' as const),
             fulfillment: next.fulfillment,
             scheduledAt: next.scheduledAt?.toISOString() ?? null,
@@ -209,6 +219,7 @@ export async function transactionPage(userId: number, page: number, size = TXN_P
       where,
       include: {
         listing: { select: { crop: true, variety: true } },
+        buyRequest: { select: { crop: true, variety: true } },
         buyer: { select: { fullname: true } },
         seller: { select: { fullname: true } },
       },

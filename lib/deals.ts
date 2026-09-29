@@ -12,8 +12,22 @@ export type PlannedRoute = {
   source: 'road' | 'straight' | null;
 };
 
-/** Works out the route for a freshly agreed deal, BEFORE it is saved (network
- * calls must not sit inside a database transaction).
+/** Routes between two already-resolved points (or works out a route is
+ * impossible because one is missing). The network call this makes must never
+ * sit inside a database transaction — plan the route first, save it after. */
+export async function planRouteBetween(origin: Place | null, dest: Place | null): Promise<PlannedRoute> {
+  if (!origin || !dest) return { origin, dest, distanceKm: null, path: null, source: null };
+  const route = await fetchRoadRoute(origin, dest, AbortSignal.timeout(9000));
+  return {
+    origin,
+    dest,
+    distanceKm: Math.round(route.km * 100) / 100,
+    path: thinPath(route.path, 300),
+    source: route.source,
+  };
+}
+
+/** Works out the route for a freshly agreed LISTING deal, BEFORE it is saved.
  *
  *   origin = where the product is (the listing's pin, or its place name looked up)
  *   dest   = where the buyer is
@@ -36,16 +50,29 @@ export async function planRoute(
       ? { lat: offer.buyerLat, lng: offer.buyerLng, label: offer.buyerAddress || 'Buyer location' }
       : null;
 
-  if (!origin || !dest) return { origin, dest, distanceKm: null, path: null, source: null };
+  return planRouteBetween(origin, dest);
+}
 
-  const route = await fetchRoadRoute(origin, dest, AbortSignal.timeout(9000));
-  return {
-    origin,
-    dest,
-    distanceKm: Math.round(route.km * 100) / 100,
-    path: thinPath(route.path, 300),
-    source: route.source,
-  };
+/** The mirror of planRoute for a BUY REQUEST deal: the buyer's side (dest) is
+ * already known from the request itself; the seller's side (origin) is
+ * whatever they supplied on their offer, since a buy request has no listing
+ * pin of its own to fall back on. */
+export async function planBuyRequestRoute(
+  buyRequest: { location: string; latitude: number | null; longitude: number | null },
+  offer: { sellerLat: number | null; sellerLng: number | null; sellerAddress: string | null }
+): Promise<PlannedRoute> {
+  let destPoint: LatLng | null =
+    buyRequest.latitude !== null && buyRequest.longitude !== null
+      ? { lat: buyRequest.latitude, lng: buyRequest.longitude }
+      : null;
+  if (!destPoint) destPoint = await geocodePlace(buyRequest.location);
+  const dest: Place | null = destPoint ? { ...destPoint, label: buyRequest.location } : null;
+  const origin: Place | null =
+    offer.sellerLat !== null && offer.sellerLng !== null
+      ? { lat: offer.sellerLat, lng: offer.sellerLng, label: offer.sellerAddress || 'Seller location' }
+      : null;
+
+  return planRouteBetween(origin, dest);
 }
 
 /** A deal is finished once the buyer has confirmed they received the goods AND
@@ -65,11 +92,19 @@ type TxRow = {
   sellerDeliveredAt: Date | null; buyerConfirmedAt: Date | null; paidAt: Date | null;
   createdAt: Date; acceptedAt: Date; completedAt: Date | null; cancelledAt: Date | null;
   offer: { conversationId: number };
-  listing: { crop: string; variety: string; photos: { url: string }[] };
+  listing: { crop: string; variety: string; photos: { url: string }[] } | null;
+  buyRequest: { crop: string; variety: string; photos: { url: string }[] } | null;
   reviews: { reviewerId: number; rating: number; comment: string | null }[];
 };
 
 const iso = (d: Date | null) => (d ? d.toISOString() : null);
+
+/** A deal is always sourced from either a listing or a buy request; this
+ * reads the crop/variety/photo off whichever one is set. */
+function dealSource(t: Pick<TxRow, 'listing' | 'buyRequest'>) {
+  const s = t.listing ?? t.buyRequest;
+  return { crop: s?.crop ?? '—', variety: s?.variety ?? '—', photo: s?.photos[0]?.url ?? null };
+}
 
 /** The shape the Deliveries page and chat banner read. `me` decides which side
  * of the deal the viewer is on, and who "the other person" is. */
@@ -79,15 +114,17 @@ export function serializeTransaction(t: TxRow, me: number, badges: Map<number, S
   const mine = t.reviews.find((r) => r.reviewerId === me) ?? null;
   const theirs = t.reviews.find((r) => r.reviewerId !== me) ?? null;
   const path = Array.isArray(t.routePath) ? (t.routePath as [number, number][]) : null;
+  const source = dealSource(t);
 
   return {
     id: t.id,
     code: t.transactionCode,
     role,
+    source: t.listing ? ('LISTING' as const) : ('BUY_REQUEST' as const),
     conversationId: t.offer.conversationId,
-    crop: t.listing.crop,
-    variety: t.listing.variety,
-    photo: t.listing.photos[0]?.url ?? null,
+    crop: source.crop,
+    variety: source.variety,
+    photo: source.photo,
     quantity: Number(t.quantity),
     unit: t.unit,
     agreedUnitPrice: Number(t.agreedUnitPrice),
@@ -122,5 +159,6 @@ export type TransactionView = ReturnType<typeof serializeTransaction>;
 export const TX_INCLUDE = {
   offer: { select: { conversationId: true } },
   listing: { select: { crop: true, variety: true, photos: { orderBy: { position: 'asc' as const }, take: 1, select: { url: true } } } },
+  buyRequest: { select: { crop: true, variety: true, photos: { orderBy: { position: 'asc' as const }, take: 1, select: { url: true } } } },
   reviews: { select: { reviewerId: true, rating: true, comment: true } },
 };

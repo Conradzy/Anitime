@@ -43,6 +43,9 @@ type OfferData = {
   buyerLat: number | null;
   buyerLng: number | null;
   buyerAddress: string | null;
+  sellerLat: number | null;
+  sellerLng: number | null;
+  sellerAddress: string | null;
 };
 
 type ChatMessage = {
@@ -62,8 +65,10 @@ type ConversationDetail = {
   listing: {
     id: number; title: string; unit: string; unitPrice: number; priceType: 'NEGOTIABLE' | 'FIXED';
     quantity: number; availableQuantity: number; paymentMethods: string[]; status: string;
-    /** what the seller allows: an offer may only pick from this */
+    /** what the seller (or, for a buy request, the buyer) allows: an offer may only pick from this */
     fulfillment: 'PICKUP' | 'DELIVERY' | 'BOTH';
+    /** LISTING = a seller's product; BUY_REQUEST = a buyer's want, being answered by a seller. */
+    kind: 'LISTING' | 'BUY_REQUEST';
   };
   transaction: {
     id: number; code: string; quantity: number; unit: string; agreedUnitPrice: number; totalAmount: number;
@@ -167,18 +172,27 @@ function OfferModal({
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // How and when the goods change hands. The buyer says where they are; a
-  // seller's counteroffer keeps that location and can change everything else.
+  // How and when the goods change hands. On a listing, the buyer says where
+  // they are (the seller's side is the listing's own pin). On a buy request
+  // it is the mirror: the buyer's side is already known from the request
+  // itself, and the responding SELLER is the one who has to say where they
+  // are. Either way, a counteroffer keeps the location and can change
+  // everything else.
   const isBuyer = detail.role === 'BUYER';
+  const mustSetLocation = listing.kind === 'BUY_REQUEST' ? !isBuyer : isBuyer;
   const [fulfillment, setFulfillment] = useState<'DELIVERY' | 'PICKUP'>(
     listing.fulfillment === 'BOTH' ? (parent?.fulfillment ?? 'PICKUP') : listing.fulfillment
   );
   const [when, setWhen] = useState(() => (parent?.scheduledAt ? toLocalInput(new Date(parent.scheduledAt)) : defaultWhen()));
-  const [loc, setLoc] = useState<{ lat: number; lng: number; label: string } | null>(
-    parent && parent.buyerLat !== null && parent.buyerLng !== null
-      ? { lat: parent.buyerLat, lng: parent.buyerLng, label: parent.buyerAddress ?? 'Buyer location' }
-      : null
-  );
+  const parentLoc =
+    listing.kind === 'BUY_REQUEST'
+      ? parent && parent.sellerLat !== null && parent.sellerLng !== null
+        ? { lat: parent.sellerLat, lng: parent.sellerLng, label: parent.sellerAddress ?? 'Seller location' }
+        : null
+      : parent && parent.buyerLat !== null && parent.buyerLng !== null
+        ? { lat: parent.buyerLat, lng: parent.buyerLng, label: parent.buyerAddress ?? 'Buyer location' }
+        : null;
+  const [loc, setLoc] = useState<{ lat: number; lng: number; label: string } | null>(parentLoc);
   const [locating, setLocating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -210,21 +224,35 @@ function OfferModal({
     const scheduled = new Date(when);
     if (!when || Number.isNaN(scheduled.getTime())) return setErr(`Choose a date and time for the ${fulfillment === 'DELIVERY' ? 'delivery' : 'pickup'}.`);
     if (scheduled.getTime() < Date.now() - 5 * 60 * 1000) return setErr('That date and time has already passed.');
-    if (isBuyer && !loc) {
+    if (mustSetLocation && !loc) {
       return setErr(
-        fulfillment === 'DELIVERY'
-          ? 'Set the delivery location so the seller knows where to bring it.'
-          : 'Set your location so we can work out the route and travel time to the pickup.'
+        listing.kind === 'BUY_REQUEST'
+          ? fulfillment === 'DELIVERY'
+            ? 'Set your location first, so the buyer knows where it is coming from.'
+            : 'Set your location first, so we can work out the route and travel time for the pickup.'
+          : fulfillment === 'DELIVERY'
+            ? 'Set the delivery location so the seller knows where to bring it.'
+            : 'Set your location so we can work out the route and travel time to the pickup.'
       );
     }
-    if (!isBuyer && !loc) return setErr("This offer has no buyer location, so it can't be countered. Ask the buyer to send a new offer.");
+    if (!mustSetLocation && !loc) {
+      return setErr(
+        listing.kind === 'BUY_REQUEST'
+          ? "This offer has no seller location, so it can't be countered. Ask the seller to send a new offer."
+          : "This offer has no buyer location, so it can't be countered. Ask the buyer to send a new offer."
+      );
+    }
     setBusy(true);
     const { ok, data } = await api<object>(`/api/conversations/${detail.id}/messages`, {
       method: 'POST',
       body: JSON.stringify({
         type: 'OFFER', quantity: q, unitPrice: effUnit, message: note, parentOfferId: parent?.id,
         fulfillment, scheduledAt: scheduled.toISOString(),
-        ...(isBuyer && loc ? { buyerLat: loc.lat, buyerLng: loc.lng, buyerAddress: loc.label } : {}),
+        ...(mustSetLocation && loc
+          ? listing.kind === 'BUY_REQUEST'
+            ? { sellerLat: loc.lat, sellerLng: loc.lng, sellerAddress: loc.label }
+            : { buyerLat: loc.lat, buyerLng: loc.lng, buyerAddress: loc.label }
+          : {}),
       }),
     });
     setBusy(false);
@@ -333,14 +361,18 @@ function OfferModal({
           <span className={styles.fieldLabel}>
             {fulfillment === 'DELIVERY' ? 'Delivery location *' : 'Where will you travel from? *'}
           </span>
-          {isBuyer ? (
+          {mustSetLocation ? (
             <div className={styles.locBlock}>
               <div className={loc ? styles.locPicked : styles.locEmpty}>{loc ? loc.label : 'Not set yet — required'}</div>
               {!loc && (
                 <div className={styles.locWhy}>
-                  {fulfillment === 'DELIVERY'
-                    ? 'The seller needs this to bring your order to you.'
-                    : 'Used to show the route, distance and travel time to the pickup. It is shared only with the seller of this listing.'}
+                  {listing.kind === 'BUY_REQUEST'
+                    ? fulfillment === 'DELIVERY'
+                      ? 'The buyer needs this to know where their order is coming from.'
+                      : 'Used to show the route, distance and travel time for the pickup. It is shared only with the buyer of this request.'
+                    : fulfillment === 'DELIVERY'
+                      ? 'The seller needs this to bring your order to you.'
+                      : 'Used to show the route, distance and travel time to the pickup. It is shared only with the seller of this listing.'}
                 </div>
               )}
               <div className={styles.locBtns}>
@@ -352,7 +384,9 @@ function OfferModal({
             </div>
           ) : (
             <div className={styles.locBlock}>
-              <div className={loc ? styles.locPicked : styles.locEmpty}>{loc ? loc.label : "The buyer didn't set a location"}</div>
+              <div className={loc ? styles.locPicked : styles.locEmpty}>
+                {loc ? loc.label : listing.kind === 'BUY_REQUEST' ? "The seller didn't set a location" : "The buyer didn't set a location"}
+              </div>
             </div>
           )}
         </div>
@@ -423,6 +457,7 @@ function OfferCard({
         <div><dt>Listed price</dt><dd>{peso(listedPrice)} / {offer.unit}</dd></div>
         <div><dt>{offer.fulfillment === 'DELIVERY' ? 'Delivery' : 'Pickup'}</dt><dd>{fmtWhen(offer.scheduledAt)}</dd></div>
         {offer.buyerAddress && <div><dt>Buyer location</dt><dd>{offer.buyerAddress}</dd></div>}
+        {offer.sellerAddress && <div><dt>Seller location</dt><dd>{offer.sellerAddress}</dd></div>}
       </dl>
       {offer.message && <p className={styles.offerNote}>“{offer.message}”</p>}
       {pending && !mine && (

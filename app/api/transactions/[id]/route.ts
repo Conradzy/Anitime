@@ -80,12 +80,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       } else if (action === 'cancel') {
         if (t.deliveryStatus !== 'PENDING' || t.paidAt) throw new Error('This can no longer be cancelled — it has already been sent or paid.');
         await tx.transaction.update({ where: { id }, data: { status: 'CANCELLED', cancelledAt: now } });
-        // The kilos go back on sale.
-        const listing = await tx.listing.update({
-          where: { id: t.listingId },
-          data: { availableQuantity: { increment: t.quantity } },
-        });
-        if (listing.status === 'SOLD_OUT') await tx.listing.update({ where: { id: listing.id }, data: { status: 'ACTIVE' } });
+        // The kilos go back on sale / back on the want, whichever this deal was.
+        if (t.listingId) {
+          const listing = await tx.listing.update({
+            where: { id: t.listingId },
+            data: { availableQuantity: { increment: t.quantity } },
+          });
+          if (listing.status === 'SOLD_OUT') await tx.listing.update({ where: { id: listing.id }, data: { status: 'ACTIVE' } });
+        } else if (t.buyRequestId) {
+          const req = await tx.buyRequest.update({
+            where: { id: t.buyRequestId },
+            data: { remainingQuantity: { increment: t.quantity } },
+          });
+          if (req.status === 'FULFILLED') await tx.buyRequest.update({ where: { id: req.id }, data: { status: 'ACTIVE' } });
+        }
         await say(tx, `${isSeller ? 'The seller' : 'The buyer'} cancelled deal ${t.transactionCode}. The stock is back on sale.`);
       } else {
         throw new Error('Unknown action.');

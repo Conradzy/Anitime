@@ -29,7 +29,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!user) return NextResponse.json({ error: 'Not signed in.' }, { status: 401 });
 
   const id = Number((await params).id);
-  const conv = await prisma.conversation.findUnique({ where: { id }, include: { listing: true } });
+  const conv = await prisma.conversation.findUnique({ where: { id }, include: { listing: true, buyRequest: true } });
   if (!conv || (conv.buyerId !== user.id && conv.sellerId !== user.id)) {
     return NextResponse.json({ error: 'Conversation not found.' }, { status: 404 });
   }
@@ -37,28 +37,46 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const body = await req.json().catch(() => null);
 
   if (body?.type === 'OFFER') {
-    const { listing } = conv;
-    if (listing.status !== 'ACTIVE') return NextResponse.json({ error: 'This listing is no longer available.' }, { status: 409 });
+    // A listing offer is against a seller's stock; a buy-request offer is
+    // against a buyer's want. Everything below reads from this one normalised
+    // shape and only branches where the two genuinely differ.
+    const kind: 'LISTING' | 'BUY_REQUEST' = conv.listing ? 'LISTING' : 'BUY_REQUEST';
+    const source = kind === 'LISTING'
+      ? {
+          crop: conv.listing!.crop, unit: conv.listing!.unit, status: conv.listing!.status,
+          available: Number(conv.listing!.availableQuantity), priceType: conv.listing!.priceType,
+          fixedPrice: Number(conv.listing!.unitPrice), fulfillmentSetting: conv.listing!.fulfillment,
+        }
+      : {
+          crop: conv.buyRequest!.crop, unit: conv.buyRequest!.unit, status: conv.buyRequest!.status,
+          available: Number(conv.buyRequest!.remainingQuantity), priceType: conv.buyRequest!.priceType,
+          fixedPrice: conv.buyRequest!.targetPrice === null ? 0 : Number(conv.buyRequest!.targetPrice),
+          fulfillmentSetting: conv.buyRequest!.fulfillment,
+        };
+    if (source.status !== 'ACTIVE') {
+      return NextResponse.json({ error: kind === 'LISTING' ? 'This listing is no longer available.' : 'This buy request is no longer open.' }, { status: 409 });
+    }
 
     const quantity = Number(body.quantity);
     const unitPrice = Math.round(Number(body.unitPrice) * 100) / 100;
     if (!Number.isFinite(quantity) || quantity <= 0) return NextResponse.json({ error: 'Enter a valid quantity.' }, { status: 400 });
     if (!Number.isFinite(unitPrice) || unitPrice <= 0) return NextResponse.json({ error: 'Enter a valid price.' }, { status: 400 });
-    if (quantity > Number(listing.availableQuantity)) {
-      return NextResponse.json({ error: `Only ${Number(listing.availableQuantity)} ${listing.unit} available.` }, { status: 400 });
+    if (quantity > source.available) {
+      return NextResponse.json({ error: `Only ${source.available} ${source.unit} ${kind === 'LISTING' ? 'available' : 'still wanted'}.` }, { status: 400 });
     }
-    if (listing.priceType === 'FIXED' && unitPrice !== Number(listing.unitPrice)) {
-      return NextResponse.json({ error: 'This listing has a fixed price.' }, { status: 400 });
+    if (source.priceType === 'FIXED' && unitPrice !== source.fixedPrice) {
+      return NextResponse.json({ error: kind === 'LISTING' ? 'This listing has a fixed price.' : 'This request has a fixed budget.' }, { status: 400 });
     }
 
     // ---- delivery or pickup, and when ---------------------------------------------
-    // The seller already said how this product changes hands when they posted
-    // it; the offer only gets a say when the listing allows both.
+    // Whoever posted first (the seller on a listing, the buyer on a request)
+    // already said how this changes hands; the offer only gets a say when
+    // they left it open to either.
     const asked = body.fulfillment === 'DELIVERY' ? ('DELIVERY' as const) : ('PICKUP' as const);
-    const fulfillment = listing.fulfillment === 'BOTH' ? asked : (listing.fulfillment as 'DELIVERY' | 'PICKUP');
-    if (listing.fulfillment !== 'BOTH' && asked !== fulfillment) {
+    const fulfillment = source.fulfillmentSetting === 'BOTH' ? asked : (source.fulfillmentSetting as 'DELIVERY' | 'PICKUP');
+    if (source.fulfillmentSetting !== 'BOTH' && asked !== fulfillment) {
       return NextResponse.json(
-        { error: `This listing is ${fulfillment === 'PICKUP' ? 'pickup' : 'delivery'} only.` },
+        { error: `This ${kind === 'LISTING' ? 'listing' : 'request'} is ${fulfillment === 'PICKUP' ? 'pickup' : 'delivery'} only.` },
         { status: 400 }
       );
     }
@@ -90,41 +108,77 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           throw new Error('There is already an offer waiting for a response.');
         }
 
-        // The buyer's location belongs to the buyer: a seller's counteroffer
-        // carries it over from the offer being answered, never a new one.
         let buyerLat: number | null = null;
         let buyerLng: number | null = null;
         let buyerAddress: string | null = null;
-        if (side === 'SELLER') {
-          buyerLat = parent?.buyerLat ?? null;
-          buyerLng = parent?.buyerLng ?? null;
-          buyerAddress = parent?.buyerAddress ?? null;
-        } else if (body.buyerLat != null && body.buyerLng != null) {
-          buyerLat = Number(body.buyerLat);
-          buyerLng = Number(body.buyerLng);
-          if (!(buyerLat >= -90 && buyerLat <= 90 && buyerLng >= -180 && buyerLng <= 180)) {
-            throw new Error('That location is not valid.');
+        let sellerLat: number | null = null;
+        let sellerLng: number | null = null;
+        let sellerAddress: string | null = null;
+
+        if (kind === 'LISTING') {
+          // The seller's side is the listing's own pin — never asked here.
+          // The buyer's location belongs to the buyer: a seller's counteroffer
+          // carries it over from the offer being answered, never a new one.
+          if (side === 'SELLER') {
+            buyerLat = parent?.buyerLat ?? null;
+            buyerLng = parent?.buyerLng ?? null;
+            buyerAddress = parent?.buyerAddress ?? null;
+          } else if (body.buyerLat != null && body.buyerLng != null) {
+            buyerLat = Number(body.buyerLat);
+            buyerLng = Number(body.buyerLng);
+            if (!(buyerLat >= -90 && buyerLat <= 90 && buyerLng >= -180 && buyerLng <= 180)) {
+              throw new Error('That location is not valid.');
+            }
+            buyerAddress = String(body.buyerAddress ?? '').trim().slice(0, 200) || null;
           }
-          buyerAddress = String(body.buyerAddress ?? '').trim().slice(0, 200) || null;
-        }
-        // Delivery needs it so the seller knows where to go; pickup needs it so
-        // both sides get a route, distance and travel time.
-        if (buyerLat === null || buyerLng === null) {
-          throw new Error(
-            side === 'SELLER'
-              ? "This offer has no buyer location, so it can't be countered. Ask the buyer to send a new offer."
-              : fulfillment === 'DELIVERY'
-                ? 'Set the delivery location first, so the seller knows where to bring it.'
-                : 'Set your location first, so we can work out the route and travel time to the pickup.'
-          );
+          if (buyerLat === null || buyerLng === null) {
+            throw new Error(
+              side === 'SELLER'
+                ? "This offer has no buyer location, so it can't be countered. Ask the buyer to send a new offer."
+                : fulfillment === 'DELIVERY'
+                  ? 'Set the delivery location first, so the seller knows where to bring it.'
+                  : 'Set your location first, so we can work out the route and travel time to the pickup.'
+            );
+          }
+        } else {
+          // The buyer's side is the request's own location — always known,
+          // never asked. The responding seller's location must be supplied,
+          // the mirror of the listing case above with the roles swapped.
+          buyerLat = conv.buyRequest!.latitude;
+          buyerLng = conv.buyRequest!.longitude;
+          buyerAddress = conv.buyRequest!.location;
+          if (side === 'BUYER') {
+            sellerLat = parent?.sellerLat ?? null;
+            sellerLng = parent?.sellerLng ?? null;
+            sellerAddress = parent?.sellerAddress ?? null;
+          } else if (body.sellerLat != null && body.sellerLng != null) {
+            sellerLat = Number(body.sellerLat);
+            sellerLng = Number(body.sellerLng);
+            if (!(sellerLat >= -90 && sellerLat <= 90 && sellerLng >= -180 && sellerLng <= 180)) {
+              throw new Error('That location is not valid.');
+            }
+            sellerAddress = String(body.sellerAddress ?? '').trim().slice(0, 200) || null;
+          }
+          if (sellerLat === null || sellerLng === null) {
+            throw new Error(
+              side === 'BUYER'
+                ? "This offer has no seller location, so it can't be countered. Ask the seller to send a new offer."
+                : fulfillment === 'DELIVERY'
+                  ? 'Set your location first, so the buyer knows where it is coming from.'
+                  : 'Set your location first, so we can work out the route and travel time for the pickup.'
+            );
+          }
         }
 
         const created = await tx.offer.create({
           data: {
-            conversationId: id, listingId: listing.id, buyerId: conv.buyerId, sellerId: conv.sellerId,
-            quantity, unit: listing.unit, unitPrice, totalAmount, message: note,
+            conversationId: id,
+            listingId: conv.listing?.id ?? null,
+            buyRequestId: conv.buyRequest?.id ?? null,
+            buyerId: conv.buyerId, sellerId: conv.sellerId,
+            quantity, unit: source.unit, unitPrice, totalAmount, message: note,
             proposedBy: side, parentOfferId: parentId,
-            fulfillment, scheduledAt, buyerLat, buyerLng, buyerAddress,
+            fulfillment, scheduledAt, buyerLat, buyerLng, buyerAddress, sellerLat, sellerLng, sellerAddress,
           },
         });
         await tx.message.create({ data: { conversationId: id, senderId: user.id, type: 'OFFER', offerId: created.id } });
@@ -136,7 +190,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         userId: other,
         type: 'OFFER',
         title: offer.parentOfferId ? 'You got a counter-offer' : 'You got a new offer',
-        body: `${user.fullname} — ${quantity} ${listing.unit} of ${listing.crop} at ₱${unitPrice.toLocaleString('en-PH')} / ${listing.unit}.`,
+        body: `${user.fullname} — ${quantity} ${source.unit} of ${source.crop} at ₱${unitPrice.toLocaleString('en-PH')} / ${source.unit}.`,
         link: `/messages?c=${id}`,
       });
       return NextResponse.json({ offerId: offer.id }, { status: 201 });
