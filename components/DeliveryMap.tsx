@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, Tooltip, useMap } from 'react-leaflet';
 import L, { type Map as LeafletMap } from 'leaflet';
+import RegionBoundary from './RegionBoundary';
 
 export type MapPlace = { lat: number; lng: number; label: string };
 
@@ -176,6 +177,7 @@ const DeliveryMap = forwardRef<
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
+      <RegionBoundary />
       {deliveries.map((d) => {
         const on = d.id === selectedId;
         return (

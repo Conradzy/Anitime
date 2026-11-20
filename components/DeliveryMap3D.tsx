@@ -506,6 +506,16 @@ async function buildKeeper(root: HTMLElement, deliveries: MapDelivery[], selecte
     creditViewport: host,
   });
   const v = viewer;
+  // Independent of delivery entities so route refreshes preserve the boundary.
+  void Cesium.GeoJsonDataSource.load('/region-xi-boundary.geojson', {
+    stroke: Cesium.Color.fromCssColorString('#A7C641').withAlpha(0.9),
+    strokeWidth: 3,
+    clampToGround: true,
+  }).then((boundary) => {
+    if (v.isDestroyed()) return;
+    void v.dataSources.add(boundary);
+    v.scene.requestRender();
+  }).catch((error) => console.error('Region XI boundary:', error));
 
   // --- Performance -----------------------------------------------------
   // Render only when something changed (camera moves, tiles arrive,
