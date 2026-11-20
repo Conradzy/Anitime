@@ -37,10 +37,6 @@ export default function StoresPage() {
               <Map2D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} />
             )}
           </div>
-          <header className={styles.heading}>
-            <h1>Stores</h1>
-            <p>Explore the map around your community.</p>
-          </header>
           <div className={styles.toolbox} aria-label="Map controls" role="group">
             {HAS_3D && (
               <div className={mapStyles.layerSwitch} role="group" aria-label="Map layer">
