@@ -25,6 +25,7 @@ export type ActiveNav =
   | 'buyer-requests'
   | 'messages'
   | 'deliveries'
+  | 'stores'
   | 'reviews'
   | 'profile';
 
@@ -371,6 +372,18 @@ export function AppSidebar({
               <path d="M13.8 9h2.2l1.4 2.4v2h-3.6z" />
               <circle cx="6" cy="15.2" r="1.4" />
               <circle cx="14.6" cy="15.2" r="1.4" />
+            </NavIcon>
+          }
+        />
+        <NavLink
+          href="/stores"
+          title="Stores"
+          onIntent={preloadDeliveryMap}
+          active={active === 'stores'}
+          icon={
+            <NavIcon stroke={active === 'stores' ? '#A7C641' : 'currentColor'}>
+              <path d="M3 8h14l-1.5-4h-11zM4 8v9h12V8M8 17v-5h4v5" />
+              <path d="M3 8a2.3 2.3 0 0 0 4.6 0 2.4 2.4 0 0 0 4.8 0A2.3 2.3 0 0 0 17 8" />
             </NavIcon>
           }
         />
