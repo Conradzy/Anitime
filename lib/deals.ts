@@ -1,4 +1,5 @@
-import { fetchRoadRoute, thinPath, type LatLng } from '@/lib/routing';
+import { type LatLng } from '@/lib/routing';
+import { fetchLocalRoadRoute } from '@/lib/routing-server';
 import { geocodePlace } from '@/lib/geocode-server';
 import type { SellerBadge } from '@/lib/marketplace';
 
@@ -17,12 +18,12 @@ export type PlannedRoute = {
  * sit inside a database transaction — plan the route first, save it after. */
 export async function planRouteBetween(origin: Place | null, dest: Place | null): Promise<PlannedRoute> {
   if (!origin || !dest) return { origin, dest, distanceKm: null, path: null, source: null };
-  const route = await fetchRoadRoute(origin, dest, AbortSignal.timeout(9000));
+  const route = await fetchLocalRoadRoute(origin, dest, AbortSignal.timeout(9000));
   return {
     origin,
     dest,
     distanceKm: Math.round(route.km * 100) / 100,
-    path: thinPath(route.path, 300),
+    path: route.path,
     source: route.source,
   };
 }

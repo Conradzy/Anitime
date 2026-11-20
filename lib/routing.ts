@@ -1,7 +1,6 @@
 // Real driving routes for the "route to this product" map.
 //
-// Uses the public OSRM demo server (OpenStreetMap road data, no API key).
-// It is meant for light use, which is what one route per opened listing is.
+// The API tries the imported Region XI road network first, then OSRM.
 // If it can't find a road route (for example the two places are on different
 // islands) or can't be reached, a straight-line estimate is returned and
 // labelled as such, so the numbers are never silently wrong.
@@ -40,6 +39,17 @@ function straight(from: LatLng, to: LatLng): RouteResult {
 }
 
 export async function fetchRoadRoute(from: LatLng, to: LatLng, signal?: AbortSignal): Promise<RouteResult> {
+  try {
+    const query = new URLSearchParams({ fromLat: String(from.lat), fromLng: String(from.lng), toLat: String(to.lat), toLng: String(to.lng) });
+    const response = await fetch(`/api/routes?${query}`, { signal });
+    if (response.ok) return await response.json() as RouteResult;
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') throw error;
+  }
+  return fetchExternalRoadRoute(from, to, signal);
+}
+
+export async function fetchExternalRoadRoute(from: LatLng, to: LatLng, signal?: AbortSignal): Promise<RouteResult> {
   const url =
     `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}` +
     `?overview=full&geometries=geojson`;
