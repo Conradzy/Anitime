@@ -9,18 +9,16 @@ import styles from './StoreMap.module.css';
 function pinImage(crop: string) {
   const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 144;
   const c = canvas.getContext('2d')!;
-  c.shadowColor = '#062f2440'; c.shadowBlur = 10; c.shadowOffsetY = 4;
-  c.fillStyle = '#f6f5ef'; c.beginPath(); c.roundRect(12, 8, 104, 104, 32); c.fill();
-  c.shadowColor = 'transparent';
-  c.strokeStyle = '#062f24'; c.lineWidth = 3; c.stroke();
-  c.fillStyle = '#062f24'; c.beginPath(); c.moveTo(52, 112); c.lineTo(64, 134); c.lineTo(76, 112); c.closePath(); c.fill();
-  c.lineWidth = 5; c.lineJoin = 'round'; c.lineCap = 'round';
-  c.strokeRect(35, 48, 56, 38);
-  c.fillStyle = '#a7c641'; c.beginPath(); c.moveTo(30, 48); c.lineTo(39, 29); c.lineTo(87, 29); c.lineTo(96, 48); c.closePath(); c.fill(); c.stroke();
-  c.beginPath(); c.moveTo(51, 31); c.lineTo(48, 48); c.moveTo(74, 31); c.lineTo(77, 48); c.moveTo(48, 85); c.lineTo(48, 63); c.lineTo(62, 63); c.lineTo(62, 85); c.stroke();
-  c.fillStyle = '#e5edcd'; c.beginPath(); c.arc(96, 94, 24, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = '#f6f5ef'; c.lineWidth = 4; c.stroke();
-  c.font = '28px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(CROP_ICONS[crop] || '🌱', 96, 95);
+  // Transparent storefront, brighter than the region boundary's #A7C641.
+  // A fine dark under-stroke keeps the neon outline legible over pale roofs.
+  const storefront = new Path2D('M20 49L30 21H98L108 49Z M25 50V105H103V50 M46 23L42 49 M65 23V49 M84 23L88 49 M37 104V69H56V104 M53 115L64 132L75 115');
+  c.lineJoin = 'round'; c.lineCap = 'round';
+  c.strokeStyle = '#062f24'; c.lineWidth = 9; c.stroke(storefront);
+  c.shadowColor = '#d9ff8a80'; c.shadowBlur = 5;
+  c.strokeStyle = '#D9FF8A'; c.lineWidth = 5; c.stroke(storefront);
+  c.shadowBlur = 0;
+  c.fillStyle = '#062f24b3'; c.beginPath(); c.roundRect(63, 60, 35, 36, 9); c.fill();
+  c.font = '28px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(CROP_ICONS[crop] || '🌱', 81, 79);
   return canvas.toDataURL();
 }
 
