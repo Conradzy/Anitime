@@ -28,8 +28,17 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
   const [selected, setSelected] = useState<Store | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pinned = useRef(false);
+  const overCard = useRef(false);
+  const panelRef = useRef<HTMLDivElement>(null);
   const pinEntities = useRef<Cesium.Entity[]>([]);
   const cancelClose = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
+  const scheduleClose = () => {
+    if (timer.current || pinned.current || overCard.current) return;
+    timer.current = setTimeout(() => {
+      if (!pinned.current && !overCard.current) setSelected(null);
+      timer.current = null;
+    }, 350);
+  };
   useEffect(() => {
     const images = new Map<string, string>();
     const entities = stores.map(store => {
@@ -46,11 +55,11 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
     };
     let lastPick = 0;
     handler.setInputAction((event: { endPosition: Cesium.Cartesian2 }) => {
-      if (performance.now() - lastPick < 80 || pinned.current) return;
+      if (performance.now() - lastPick < 80) return;
       lastPick = performance.now();
       const store = find(event.endPosition);
       if (store) { cancelClose(); setSelected(store); }
-      else if (!timer.current) timer.current = setTimeout(() => { setSelected(null); timer.current = null; }, 450);
+      else scheduleClose();
     }, engine.ScreenSpaceEventType.MOUSE_MOVE);
     handler.setInputAction((event: { position: Cesium.Cartesian2 }) => {
       const store = find(event.position);
@@ -82,12 +91,56 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
   }, [selected, viewer, engine, stores]);
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!selected || !panel || viewer.isDestroyed()) return;
+    const updatePosition = () => {
+      const { scene } = viewer;
+      const location = engine.Cartographic.fromDegrees(selected.lng, selected.lat);
+      const height = scene.sampleHeightSupported ? scene.sampleHeight(location, pinEntities.current) : undefined;
+      const world = engine.Cartesian3.fromDegrees(selected.lng, selected.lat, height ?? 0);
+      const point = engine.SceneTransforms.worldToWindowCoordinates(scene, world);
+      const width = viewer.canvas.clientWidth, viewportHeight = viewer.canvas.clientHeight;
+      if (!point || point.x < 0 || point.x > width || point.y < 0 || point.y > viewportHeight) {
+        panel.style.visibility = 'hidden'; return;
+      }
+      panel.style.setProperty('--bubble-height', `${Math.max(160, viewportHeight - 120)}px`);
+      const w = panel.offsetWidth, h = panel.offsetHeight;
+      const x = point.x, y = point.y - 30;
+      const gap = 36, margin = 12;
+      const clamp = (value: number, max: number) => Math.max(margin, Math.min(value, max - margin));
+      let left: number, top: number, side: string;
+      if (x + gap + w < width - margin) {
+        side = 'right'; left = x + gap; top = clamp(y - h / 2, viewportHeight - h);
+      } else if (x - gap - w > margin) {
+        side = 'left'; left = x - gap - w; top = clamp(y - h / 2, viewportHeight - h);
+      } else {
+        side = y > viewportHeight / 2 ? 'above' : 'below';
+        left = clamp(x - w / 2, width - w);
+        top = clamp(side === 'above' ? y - gap - h : y + gap, viewportHeight - h);
+      }
+      panel.dataset.side = side;
+      panel.style.left = `${left}px`; panel.style.top = `${top}px`;
+      panel.style.setProperty('--tail-y', `${Math.max(22, Math.min(h - 22, y - top))}px`);
+      panel.style.setProperty('--tail-x', `${Math.max(22, Math.min(w - 22, x - left))}px`);
+      panel.style.visibility = 'visible';
+    };
+    updatePosition();
+    const remove = viewer.scene.postRender.addEventListener(updatePosition);
+    const observer = new ResizeObserver(() => { updatePosition(); });
+    observer.observe(panel);
+    return () => { remove(); observer.disconnect(); };
+  }, [selected, viewer, engine]);
   return <>
     <details className={styles.directory}><summary>Find a store ({stores.length})</summary><div>{stores.map(store =>
       <button type="button" key={store.id} onClick={() => { cancelClose(); pinned.current = true; setSelected(store); viewer.camera.flyTo({ destination: engine.Cartesian3.fromDegrees(store.lng, store.lat, 1800) }); }}>{CROP_ICONS[store.crop]} {store.name}</button>
     )}</div></details>
-    {selected && <div className={styles.panel} onMouseEnter={() => { cancelClose(); pinned.current = true; }}>
-      <StoreCard store={selected} onClose={() => { cancelClose(); pinned.current = false; setSelected(null); }} />
+    {selected && <div ref={panelRef} className={styles.panel}
+      onMouseEnter={() => { cancelClose(); overCard.current = true; }}
+      onMouseLeave={() => { overCard.current = false; scheduleClose(); }}>
+      <div key={selected.id} className={styles.bubble}>
+        <StoreCard store={selected} onClose={() => { cancelClose(); pinned.current = false; overCard.current = false; setSelected(null); }} />
+      </div>
     </div>}
   </>;
 }
