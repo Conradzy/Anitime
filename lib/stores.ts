@@ -7,5 +7,6 @@ import store4 from './stores/dbcom.json';
 import store5 from './stores/first-coconut.json';
 import store6 from './stores/new-davao-oil.json';
 import store7 from './stores/pacific-oil.json';
-export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7];
+import store8 from './stores/multitrade.json';
+export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8];
 export const CROP_ICONS: Record<string, string> = { Banana: '🍌', Copra: '🥥', Corn: '🌽', Pineapple: '🍍' };
