@@ -35,7 +35,7 @@ export default function StoresPage() {
         <div className={mapStyles.mapArea}>
           <div className={mapStyles.mapWrap}>
             {layer === 'photo' ? (
-              <Map3D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} stores={STORES} onViewStore={setStore} />
+              <Map3D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} stores={STORES} onViewStore={setStore} suspended={Boolean(store)} />
             ) : (
               <Map2D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} />
             )}

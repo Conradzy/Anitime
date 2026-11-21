@@ -705,10 +705,11 @@ const DeliveryMap3D = forwardRef<
     deliveries: MapDelivery[];
     stores?: Store[];
     onViewStore?: (store: Store) => void;
+    suspended?: boolean;
     selectedId: string;
     onSelect: (id: string) => void;
   }
->(function DeliveryMap3D({ deliveries, selectedId, onSelect, stores, onViewStore }, ref) {
+>(function DeliveryMap3D({ deliveries, selectedId, onSelect, stores, onViewStore, suspended = false }, ref) {
   const [storeScene, setStoreScene] = useState<SceneCtx | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const ctxRef = useRef<SceneCtx | null>(null);
@@ -725,7 +726,7 @@ const DeliveryMap3D = forwardRef<
   });
 
   // Coming back to a viewer that is still alive starts already "ready".
-  const reusable = keeper && keeper.status !== 'error' && keeper.sig === signatureOf(deliveries) ? keeper : null;
+  const reusable = keeper && keeper.status !== 'error' ? keeper : null;
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(reusable?.status ?? 'loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [sceneReady, setSceneReady] = useState(Boolean(reusable));
@@ -773,8 +774,14 @@ const DeliveryMap3D = forwardRef<
       ctxRef.current = k.ctx;
       setStoreScene(k.ctx);
       attachKeeper(k, root, bridge);
+      if (k.sig !== sig) {
+        syncRoutes(k.ctx, deliveriesRef.current);
+        k.sig = sig;
+      }
       // Same selection as when we left → the camera stays where it was.
       applySelection(k.ctx, selectedIdRef.current, 0);
+      setSceneReady(true);
+      sync();
     };
 
     async function start() {
@@ -785,7 +792,7 @@ const DeliveryMap3D = forwardRef<
       }
 
       let k = keeper;
-      if (k && (k.sig !== sig || k.status === 'error')) {
+      if (k && k.status === 'error') {
         destroyKeeper(k);
         k = null;
       }
@@ -833,6 +840,27 @@ const DeliveryMap3D = forwardRef<
       }
     };
   }, []);
+
+  // Keep the last frame behind the drawer; stop both rendering and camera input.
+  // The same live viewer and tile cache also survive page navigation for 20 minutes.
+  useEffect(() => {
+    const ctx = storeScene;
+    if (!ctx || ctx.viewer.isDestroyed()) return;
+    const update = () => {
+      if (ctx.viewer.isDestroyed()) return;
+      const paused = suspended || document.hidden;
+      ctx.viewer.useDefaultRenderLoop = !paused;
+      ctx.viewer.scene.screenSpaceCameraController.enableInputs = !paused;
+      if (keeper?.ctx === ctx) {
+        if (paused) stopHeartbeat(keeper);
+        else startHeartbeat(keeper);
+      }
+      if (!paused) { ctx.viewer.resize(); ctx.viewer.scene.requestRender(); }
+    };
+    update();
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, [storeScene, suspended]);
 
   // The deals are fetched after this page mounts, and new ones arrive while it
   // is open, so the scene is redrawn whenever the set of routes changes. The
