@@ -13,5 +13,6 @@ import store10 from './stores/davao-south.json';
 import store11 from './stores/perfect-milling.json';
 import store12 from './stores/j-agrotrade.json';
 import store13 from './stores/fresh-harvest.json';
-export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8, store9, store10, store11, store12, store13];
+import store14 from './stores/bjm.json';
+export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8, store9, store10, store11, store12, store13, store14];
 export const CROP_ICONS: Record<string, string> = { Banana: '🍌', Copra: '🥥', Corn: '🌽', Pineapple: '🍍' };
