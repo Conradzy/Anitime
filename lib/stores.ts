@@ -15,5 +15,6 @@ import store12 from './stores/j-agrotrade.json';
 import store13 from './stores/fresh-harvest.json';
 import store14 from './stores/bjm.json';
 import store15 from './stores/cawigan.json';
-export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8, store9, store10, store11, store12, store13, store14, store15];
+import store16 from './stores/davao-mt.json';
+export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8, store9, store10, store11, store12, store13, store14, store15, store16];
 export const CROP_ICONS: Record<string, string> = { Banana: '🍌', Copra: '🥥', Corn: '🌽', Pineapple: '🍍' };
