@@ -65,8 +65,14 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
       return store;
     };
     let lastPick = 0;
+    let moving = false;
+    let dragging = false;
+    const removeMoveStart = viewer.camera.moveStart.addEventListener(() => { moving = true; });
+    const removeMoveEnd = viewer.camera.moveEnd.addEventListener(() => { moving = false; });
+    handler.setInputAction(() => { dragging = true; }, engine.ScreenSpaceEventType.LEFT_DOWN);
+    handler.setInputAction(() => { dragging = false; }, engine.ScreenSpaceEventType.LEFT_UP);
     handler.setInputAction((event: { endPosition: Cesium.Cartesian2 }) => {
-      if (performance.now() - lastPick < 80) return;
+      if (moving || dragging || performance.now() - lastPick < 100) return;
       lastPick = performance.now();
       const store = find(event.endPosition);
       if (store) { cancelClose(); setSelected(store); }
@@ -77,7 +83,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
       if (store) { cancelClose(); pinned.current = true; setSelected(store); }
     }, engine.ScreenSpaceEventType.LEFT_CLICK);
     viewer.scene.requestRender();
-    return () => { cancelClose(); handler.destroy(); if (!viewer.isDestroyed()) { entities.forEach(entity => viewer.entities.remove(entity)); viewer.scene.requestRender(); } };
+    return () => { cancelClose(); removeMoveStart(); removeMoveEnd(); handler.destroy(); if (!viewer.isDestroyed()) { entities.forEach(entity => viewer.entities.remove(entity)); viewer.scene.requestRender(); } };
   }, [viewer, engine, stores]);
   useEffect(() => {
     if (viewer.isDestroyed()) return;
@@ -108,6 +114,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
   useEffect(() => {
     const panel = panelRef.current;
     if (!selected || !panel || viewer.isDestroyed()) return;
+    let lastLayout = '';
     const updatePosition = () => {
       const { scene } = viewer;
       const height = storeHeights.current.get(selected.id);
@@ -115,10 +122,14 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
       const point = engine.SceneTransforms.worldToWindowCoordinates(scene, world);
       const width = viewer.canvas.clientWidth, viewportHeight = viewer.canvas.clientHeight;
       if (!point || point.x < 0 || point.x > width || point.y < 0 || point.y > viewportHeight) {
-        panel.style.visibility = 'hidden'; return;
+        panel.style.visibility = 'hidden'; lastLayout = ''; return;
       }
-      panel.style.setProperty('--bubble-height', `${Math.max(160, viewportHeight - 120)}px`);
+      const maxHeight = `${Math.max(160, viewportHeight - 120)}px`;
+      if (panel.style.getPropertyValue('--bubble-height') !== maxHeight) panel.style.setProperty('--bubble-height', maxHeight);
       const w = panel.offsetWidth, h = panel.offsetHeight;
+      const layout = `${Math.round(point.x * 2)},${Math.round(point.y * 2)},${width},${viewportHeight},${w},${h}`;
+      if (layout === lastLayout) return;
+      lastLayout = layout;
       const x = point.x, y = point.y - 30;
       const gap = 36, margin = 12;
       const clamp = (value: number, max: number) => Math.max(margin, Math.min(value, max - margin));

@@ -307,7 +307,7 @@ const notify = (k: Keeper) => k.listeners.forEach((fn) => fn());
 function startHeartbeat(k: Keeper) {
   if (k.heartbeat !== undefined) return;
   k.heartbeat = window.setInterval(() => {
-    if (!document.hidden && !k.viewer.isDestroyed()) k.viewer.scene.requestRender();
+    if (k.ctx.anim && !document.hidden && !k.viewer.isDestroyed()) k.viewer.scene.requestRender();
   }, 40);
 }
 
@@ -634,6 +634,9 @@ async function buildKeeper(root: HTMLElement, deliveries: MapDelivery[], selecte
   v.screenSpaceEventHandler.setInputAction(() => { dragging = true; }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
   v.screenSpaceEventHandler.setInputAction(() => { dragging = false; }, Cesium.ScreenSpaceEventType.LEFT_UP);
   v.screenSpaceEventHandler.setInputAction((movement: { endPosition: CesiumNS.Cartesian2 }) => {
+    // Stores has its own picking handler; an empty delivery scene has nothing
+    // to hover and must not perform a second GPU pick for every mouse move.
+    if (ctx.routes.size === 0) return;
     const { x, y } = movement.endPosition;
     const { tip, root: mountRoot } = k.bridge;
     if (tip && mountRoot) {
