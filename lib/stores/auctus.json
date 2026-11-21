@@ -6,6 +6,7 @@
   "crop": "Pineapple",
   "photo": "/uploads/stores%20pictures/auctus%20fresca%20traders.png",
   "phone": null,
+  "phoneExample": "+63 9XX 595 9906",
   "address": "Deca Homes 1, Cabantian, Buhangin District, Davao City, Philippines",
   "addressApproximate": true,
   "addressSource": "https://www.openstreetmap.org/way/114771959",

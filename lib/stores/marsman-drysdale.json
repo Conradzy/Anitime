@@ -6,6 +6,7 @@
   "crop": "Banana",
   "photo": "/uploads/stores%20pictures/Marsman%20Drysdale%201.jpeg",
   "phone": null,
+  "phoneExample": "+63 9XX 644 2372",
   "address": "Purok 20, Marsman Compound, Tibal-og, Santo Tomas, Davao del Norte, Philippines",
   "addressApproximate": false,
   "addressSource": "https://npqsd.bpi-npqsd.com.ph/export/",

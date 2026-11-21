@@ -6,6 +6,7 @@
   "crop": "Copra",
   "photo": "/uploads/stores%20pictures/dbcom.jpeg",
   "phone": null,
+  "phoneExample": "+63 9XX 603 4365",
   "address": "Km. 14, Barangay Panacan, Davao City, Philippines",
   "addressApproximate": false,
   "addressSource": "https://verification.fda.gov.ph/FOOD_MANUFACTURERview.php?ACCOUNTCODE=LTO-3000005374934&export=pdf",
