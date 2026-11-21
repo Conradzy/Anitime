@@ -704,10 +704,11 @@ const DeliveryMap3D = forwardRef<
   {
     deliveries: MapDelivery[];
     stores?: Store[];
+    onViewStore?: (store: Store) => void;
     selectedId: string;
     onSelect: (id: string) => void;
   }
->(function DeliveryMap3D({ deliveries, selectedId, onSelect, stores }, ref) {
+>(function DeliveryMap3D({ deliveries, selectedId, onSelect, stores, onViewStore }, ref) {
   const [storeScene, setStoreScene] = useState<SceneCtx | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const ctxRef = useRef<SceneCtx | null>(null);
@@ -854,7 +855,7 @@ const DeliveryMap3D = forwardRef<
 
   return (
     <div ref={rootRef} className={styles.root}>
-      {stores && storeScene && <StorePins3D viewer={storeScene.viewer} engine={storeScene.Cesium} stores={stores} />}
+      {stores && storeScene && <StorePins3D viewer={storeScene.viewer} engine={storeScene.Cesium} stores={stores} onView={onViewStore} />}
       <div ref={tipRef} className={hovered ? styles.tip : styles.tipHidden}>
         {hovered && (
           <>

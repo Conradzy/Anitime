@@ -6,7 +6,8 @@ import { AppSidebar } from '@/components/AppSidebar';
 import type { DeliveryMapHandle, MapDelivery } from '@/components/DeliveryMap';
 import mapStyles from '../deliveries/page.module.css';
 import styles from './page.module.css';
-import { STORES } from '@/lib/stores';
+import { STORES, type Store } from '@/lib/stores';
+import StoreDrawer from '@/components/StoreDrawer';
 
 const Map3D = dynamic(() => import('@/components/DeliveryMap3D'), { ssr: false });
 const Map2D = dynamic(() => import('@/components/DeliveryMap'), { ssr: false });
@@ -23,6 +24,7 @@ const CAMERA_CONTROLS = [
 
 export default function StoresPage() {
   const [mini, setMini] = useState(false);
+  const [store, setStore] = useState<Store | null>(null);
   const [layer, setLayer] = useState<'photo' | 'street'>(HAS_3D ? 'photo' : 'street');
   const mapRef = useRef<DeliveryMapHandle>(null);
 
@@ -33,7 +35,7 @@ export default function StoresPage() {
         <div className={mapStyles.mapArea}>
           <div className={mapStyles.mapWrap}>
             {layer === 'photo' ? (
-              <Map3D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} stores={STORES} />
+              <Map3D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} stores={STORES} onViewStore={setStore} />
             ) : (
               <Map2D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} />
             )}
@@ -60,6 +62,7 @@ export default function StoresPage() {
           </div>
         </div>
       </main>
+      {store && <StoreDrawer key={store.id} store={store} onClose={() => setStore(null)} />}
     </div>
   );
 }

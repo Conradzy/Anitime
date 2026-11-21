@@ -27,7 +27,7 @@ function pinImage(crop: string) {
   return canvas.toDataURL();
 }
 
-export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium.Viewer; engine: typeof Cesium; stores: Store[] }) {
+export default function StorePins3D({ viewer, engine, stores, onView }: { viewer: Cesium.Viewer; engine: typeof Cesium; stores: Store[]; onView?: (store: Store) => void }) {
   const [selected, setSelected] = useState<Store | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pinned = useRef(false);
@@ -166,7 +166,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
       onMouseEnter={() => { cancelClose(); overCard.current = true; }}
       onMouseLeave={() => { overCard.current = false; scheduleClose(); }}>
       <div key={selected.id} className={styles.bubble}>
-        <StoreCard store={selected} onClose={() => { cancelClose(); pinned.current = false; overCard.current = false; setSelected(null); }} />
+        <StoreCard store={selected} onView={store => { onView?.(store); cancelClose(); pinned.current = false; overCard.current = false; setSelected(null); }} onClose={() => { cancelClose(); pinned.current = false; overCard.current = false; setSelected(null); }} />
       </div>
     </div>}
   </>;

@@ -2,7 +2,7 @@ import type { Store } from '@/lib/stores';
 import { CROP_ICONS } from '@/lib/stores';
 import styles from './StoreMap.module.css';
 
-export default function StoreCard({ store, onClose }: { store: Store; onClose?: () => void }) {
+export default function StoreCard({ store, onClose, onView }: { store: Store; onClose?: () => void; onView?: (store: Store) => void }) {
   return <article className={styles.card} aria-label={store.name}>
     {/* Local photographs retain their original aspect ratio inside a uniform frame. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -18,7 +18,7 @@ export default function StoreCard({ store, onClose }: { store: Store; onClose?: 
       </dd>
         <dt>Phone</dt><dd>{store.phone || store.phoneExample || 'Not provided'}
         </dd></dl>
-      <button className={styles.action} type="button" disabled>View store</button>
+      <button className={styles.action} type="button" onClick={() => onView?.(store)}>View store</button>
     </div>
   </article>;
 }
