@@ -5,5 +5,9 @@
   "lng": 125.6354167831571,
   "crop": "Copra",
   "photo": "/uploads/stores%20pictures/pacific%20oil%20farmers.jpeg",
-  "phone": null
+  "phone": null,
+  "address": "Summer Hill Village, Barangay Alfonso Angliongto Sr., Buhangin District, Davao City, Philippines",
+  "addressApproximate": true,
+  "addressSource": "https://www.openstreetmap.org/way/114651281",
+  "addressCheckedAt": "2026-11-21"
 }

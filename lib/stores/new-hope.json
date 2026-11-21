@@ -5,5 +5,9 @@
   "lng": 125.6482318378271,
   "crop": "Corn",
   "photo": "/uploads/stores%20pictures/new%20hope%20davao%201.jpeg",
-  "phone": null
+  "phone": null,
+  "address": "Purok Gulayan, Barangay Datu Abdul Dadia, Panabo City, Davao del Norte, Philippines",
+  "addressApproximate": false,
+  "addressSource": "https://philjobnet.gov.ph/job-vacancies/company/new-hope-davao-agriculture-inc-386636",
+  "addressCheckedAt": "2026-11-21"
 }

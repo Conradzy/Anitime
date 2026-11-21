@@ -5,5 +5,9 @@
   "lng": 125.62190718807882,
   "crop": "Copra",
   "photo": "/uploads/stores%20pictures/multitrade%20copras%20buyer.jpg",
-  "phone": null
+  "phone": null,
+  "address": "C. Lizada Street area, Barangay 27-C Santa Ana, Poblacion District, Davao City, Philippines",
+  "addressApproximate": true,
+  "addressSource": "https://www.openstreetmap.org/node/11985813543",
+  "addressCheckedAt": "2026-11-21"
 }

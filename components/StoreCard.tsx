@@ -11,7 +11,12 @@ export default function StoreCard({ store, onClose }: { store: Store; onClose?: 
     <div className={styles.body}>
       <span className={styles.badge}>{CROP_ICONS[store.crop]} Buys {store.crop.toLowerCase()}</span>
       <h2>{store.name}</h2>
-      <dl><dt>Location</dt><dd>{store.lat.toFixed(6)}, {store.lng.toFixed(6)}</dd>
+      <dl><dt>Location</dt><dd>{store.address}
+        <small className={styles.detailNote}>
+          {store.addressApproximate ? 'Approximate pin location · ' : ''}
+          <a href={store.addressSource} target="_blank" rel="noopener noreferrer">{store.addressApproximate ? '© OpenStreetMap contributors' : 'Address source'}</a>
+        </small>
+      </dd>
         <dt>Phone</dt><dd>{store.phone || 'Not provided'}</dd></dl>
       <button className={styles.action} type="button" disabled>View store</button>
     </div>

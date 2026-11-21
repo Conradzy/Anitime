@@ -5,5 +5,9 @@
   "lng": 125.60129919178902,
   "crop": "Pineapple",
   "photo": "/uploads/stores%20pictures/cawigan%20fruitstand.png",
-  "phone": null
+  "phone": null,
+  "address": "Father Selga Street, Purok 2, Barangay 5-A Bankerohan, Poblacion District, Davao City, Philippines",
+  "addressApproximate": true,
+  "addressSource": "https://www.openstreetmap.org/way/1044417160",
+  "addressCheckedAt": "2026-11-21"
 }

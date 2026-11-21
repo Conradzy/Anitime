@@ -5,5 +5,9 @@
   "lng": 125.64940300761651,
   "crop": "Banana",
   "photo": "/uploads/stores%20pictures/Lapanday%20Foods%201.jpeg",
-  "phone": null
+  "phone": null,
+  "address": "Maryknoll Drive, Bo. Pampanga, Lanang, Davao City, Philippines",
+  "addressApproximate": false,
+  "addressSource": "https://www.lapanday.com/contact-us/",
+  "addressCheckedAt": "2026-11-21"
 }

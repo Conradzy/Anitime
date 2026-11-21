@@ -5,5 +5,9 @@
   "lng": 125.65386927999688,
   "crop": "Banana",
   "photo": "/uploads/stores%20pictures/super%20green%20fruits%20trader.jpeg",
-  "phone": null
+  "phone": null,
+  "address": "Lot 5, Block 7, Tubao Street, Emiville Homes, Sasa, Davao City, Philippines",
+  "addressApproximate": false,
+  "addressSource": "https://pilipinas.worldorgs.com/Katalogo/dabaw/wholesaler/super-green-fresh-fruit-trader",
+  "addressCheckedAt": "2026-11-21"
 }

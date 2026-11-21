@@ -5,5 +5,9 @@
   "lng": 125.61517730898922,
   "crop": "Pineapple",
   "photo": "/uploads/stores%20pictures/bjm%20agri%20export.jpeg",
-  "phone": null
+  "phone": null,
+  "address": "Unit A9, Ground Floor, Buhangin Grand Complex Building, Buhangin, Davao City, Philippines",
+  "addressApproximate": false,
+  "addressSource": "https://bjmagri.com/",
+  "addressCheckedAt": "2026-11-21"
 }

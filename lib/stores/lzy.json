@@ -5,5 +5,9 @@
   "lng": 125.6188468954976,
   "crop": "Corn",
   "photo": "/uploads/stores%20pictures/lzy%20rice%20corn%20trader%20shop.jpeg",
-  "phone": null
+  "phone": null,
+  "address": "Governor Sales Street area, Barangay 27-C Santa Ana, Poblacion District, Davao City, Philippines",
+  "addressApproximate": true,
+  "addressSource": "https://www.openstreetmap.org/way/160305732",
+  "addressCheckedAt": "2026-11-21"
 }

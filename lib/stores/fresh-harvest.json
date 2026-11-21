@@ -5,5 +5,9 @@
   "lng": 125.59672080898834,
   "crop": "Pineapple",
   "photo": "/uploads/stores%20pictures/fresh%20harvest.jpeg",
-  "phone": null
+  "phone": null,
+  "address": "2nd Floor, Left Wing, DTRIP Building, Matina Town Square, MacArthur Highway, Matina, Davao City, Philippines",
+  "addressApproximate": false,
+  "addressSource": "https://npqsd.bpi-npqsd.com.ph/export/",
+  "addressCheckedAt": "2026-11-21"
 }

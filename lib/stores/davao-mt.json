@@ -5,5 +5,9 @@
   "lng": 125.45365278200755,
   "crop": "Copra",
   "photo": "/uploads/stores%20pictures/davao%20mt%20marketing.png",
-  "phone": null
+  "phone": null,
+  "address": "C. Villafuerte Street, Calinan, Davao City, Philippines",
+  "addressApproximate": false,
+  "addressSource": "https://ph.near-place.com/davao-mt-marketing-villafuerte-street-calinan-district-davao-city",
+  "addressCheckedAt": "2026-11-21"
 }

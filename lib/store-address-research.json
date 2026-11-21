@@ -1,0 +1,464 @@
+{
+  "attribution": "© OpenStreetMap contributors",
+  "checkedAt": "2026-11-21",
+  "notes": [
+    "Reverse geocoding identifies nearby mapped objects, not necessarily the named business. Nearby amenity/shop names were not used as store addresses.",
+    "Six records use approximate pin-area locations: Auctus, Cawigan, J Agrotrade, LZY, Multitrade, and Pacific Oil Farmers. Their addressApproximate flags identify them.",
+    "Auctus has a published registered office in Milan, Buhangin, while the supplied pin resolves to Cabantian. The card retains the pin area. Registered-office source: https://npqsd.bpi-npqsd.com.ph/export/",
+    "Pacific Oil Farmers has a listed plant at Km. 23 Bunawan, whereas the supplied pin resolves to Summer Hill Village. The card retains the pin area. Source: https://www.pca.gov.ph/pdf/tradeDirectory/2017/CNOExporters%26TradersTD.pdf",
+    "LZY is listed at Monteverde Street corner D. Suazo Street, Barangay 30-C, but its supplied pin resolves near Governor Sales Street, Barangay 27-C. Exact premises need owner confirmation. Source: https://pilipinas.worldorgs.com/Katalogo/dabaw/wholesaler/lzy-rice-and-corn-trader",
+    "Multitrade is listed at 124 Monteverde Street, while the supplied pin resolves to the C. Lizada Street area. Exact premises need owner confirmation. Source: https://ph1031195-multitrade-copra-buyer.contact.page/map"
+  ],
+  "results": [
+    {
+      "id": "auctus",
+      "query": {
+        "lat": 7.13083060995973,
+        "lng": 125.61856509549861
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.13083060995973&lon=125.61856509549861&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "neighbourhood": "Deca Homes 1",
+        "suburb": "Cabantian",
+        "city_district": "Buhangin District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Deca Homes 1, Cabantian, Buhangin District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 114771959
+    },
+    {
+      "id": "bjm",
+      "query": {
+        "lat": 7.108932366510357,
+        "lng": 125.61517730898922
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.108932366510357&lon=125.61517730898922&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "amenity": "Asteri Dental Clinic",
+        "road": "Carlos P. Garcia Highway",
+        "neighbourhood": "Apollo",
+        "quarter": "Milan",
+        "suburb": "Buhangin",
+        "city_district": "Buhangin District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Asteri Dental Clinic, Carlos P. Garcia Highway, Apollo, Milan, Buhangin, Buhangin District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "node",
+      "osmId": 11989291206
+    },
+    {
+      "id": "cawigan",
+      "query": {
+        "lat": 7.069689596508854,
+        "lng": 125.60129919178902
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.069689596508854&lon=125.60129919178902&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "road": "Father Selga Street",
+        "neighbourhood": "Purok 2",
+        "quarter": "5-A Bankerohan",
+        "suburb": "Poblacion District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Father Selga Street, Purok 2, 5-A Bankerohan, Poblacion District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 1044417160
+    },
+    {
+      "id": "davao-mt",
+      "query": {
+        "lat": 7.188396894008686,
+        "lng": 125.45365278200755
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.188396894008686&lon=125.45365278200755&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "road": "C. Villafuerte Street",
+        "neighbourhood": "Purok 6",
+        "town": "Calinan",
+        "city_district": "Calinan District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8018",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "C. Villafuerte Street, Purok 6, Calinan, Calinan District, Davao City, Davao Region, 8018, Philippines",
+      "osmType": "way",
+      "osmId": 1066380313
+    },
+    {
+      "id": "davao-south",
+      "query": {
+        "lat": 7.222842335709289,
+        "lng": 125.6367535629521
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.222842335709289&lon=125.6367535629521&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "neighbourhood": "Calderon",
+        "quarter": "Budbud",
+        "suburb": "Bunawan",
+        "city_district": "Bunawan District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8017",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Calderon, Budbud, Bunawan, Bunawan District, Davao City, Davao Region, 8017, Philippines",
+      "osmType": "way",
+      "osmId": 1286466913
+    },
+    {
+      "id": "dbcom",
+      "query": {
+        "lat": 7.160144060755881,
+        "lng": 125.65738172248017
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.160144060755881&lon=125.65738172248017&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "road": "Davao-Agusan National Highway",
+        "neighbourhood": "Purok 18",
+        "suburb": "Panacan",
+        "city_district": "Bunawan District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Davao-Agusan National Highway, Purok 18, Panacan, Bunawan District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 106646806
+    },
+    {
+      "id": "first-coconut",
+      "query": {
+        "lat": 7.119321207565061,
+        "lng": 125.65649045131654
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.119321207565061&lon=125.65649045131654&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "road": "Davao-Agusan National Highway",
+        "neighbourhood": "Doña Salud",
+        "quarter": "Pampanga",
+        "suburb": "Sasa",
+        "city_district": "Buhangin District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Davao-Agusan National Highway, Doña Salud, Pampanga, Sasa, Buhangin District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 116779327
+    },
+    {
+      "id": "fresh-harvest",
+      "query": {
+        "lat": 7.063653098878671,
+        "lng": 125.59672080898834
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.063653098878671&lon=125.59672080898834&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "amenity": "Boondocks Bikes and Beers",
+        "road": "MacArthur Highway",
+        "neighbourhood": "Villa Abrille",
+        "quarter": "Gravahan",
+        "suburb": "Ma-a",
+        "city_district": "Talomo District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Boondocks Bikes and Beers, MacArthur Highway, Villa Abrille, Gravahan, Ma-a, Talomo District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "node",
+      "osmId": 13347914361
+    },
+    {
+      "id": "j-agrotrade",
+      "query": {
+        "lat": 7.077389352204701,
+        "lng": 125.62165912618926
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.077389352204701&lon=125.62165912618926&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "road": "C. Lizada Street",
+        "quarter": "Kapitan Tomas Monteverde Sr.",
+        "suburb": "Agdao District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "C. Lizada Street, Kapitan Tomas Monteverde Sr., Agdao District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 23992627
+    },
+    {
+      "id": "lapanday",
+      "query": {
+        "lat": 7.109026849969594,
+        "lng": 125.64940300761651
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.109026849969594&lon=125.64940300761651&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "road": "Maryknoll Drive",
+        "neighbourhood": "Cuaco Beach",
+        "quarter": "Vicente Hizon Sr.",
+        "suburb": "Sasa",
+        "city_district": "Buhangin District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Maryknoll Drive, Cuaco Beach, Vicente Hizon Sr., Sasa, Buhangin District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 28901920
+    },
+    {
+      "id": "lzy",
+      "query": {
+        "lat": 7.075751746995936,
+        "lng": 125.6188468954976
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.075751746995936&lon=125.6188468954976&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "shop": "Chimes Specialty Store",
+        "road": "Governor Sales Street",
+        "neighbourhood": "Chinatown",
+        "quarter": "27-C Santa Ana",
+        "suburb": "Poblacion District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Chimes Specialty Store, Governor Sales Street, Chinatown, 27-C Santa Ana, Poblacion District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 160305732
+    },
+    {
+      "id": "marsman-drysdale",
+      "query": {
+        "lat": 7.506506227496532,
+        "lng": 125.6277080131938
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.506506227496532&lon=125.6277080131938&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "neighbourhood": "Batulao Compound",
+        "quarter": "Marscon",
+        "suburb": "Tibal-og",
+        "village": "New Visayas",
+        "town": "Santo Tomas",
+        "state": "Davao del Norte",
+        "ISO3166-2-lvl4": "PH-DAV",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8112",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Batulao Compound, Marscon, Tibal-og, New Visayas, Santo Tomas, Davao del Norte, Davao Region, 8112, Philippines",
+      "osmType": "way",
+      "osmId": 289138965
+    },
+    {
+      "id": "multitrade",
+      "query": {
+        "lat": 7.075261205752518,
+        "lng": 125.62190718807882
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.075261205752518&lon=125.62190718807882&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "shop": "Boltan Trading",
+        "road": "C. Lizada Street",
+        "neighbourhood": "Chinatown",
+        "quarter": "27-C Santa Ana",
+        "suburb": "Poblacion District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Boltan Trading, C. Lizada Street, Chinatown, 27-C Santa Ana, Poblacion District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "node",
+      "osmId": 11985813543
+    },
+    {
+      "id": "new-davao-oil",
+      "query": {
+        "lat": 7.162897620536795,
+        "lng": 125.65733469549822
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.162897620536795&lon=125.65733469549822&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "road": "Davao-Agusan National Highway",
+        "neighbourhood": "Purok 18",
+        "suburb": "Panacan",
+        "city_district": "Bunawan District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Davao-Agusan National Highway, Purok 18, Panacan, Bunawan District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 106646806
+    },
+    {
+      "id": "new-hope",
+      "query": {
+        "lat": 7.3170780391269306,
+        "lng": 125.6482318378271
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.3170780391269306&lon=125.6482318378271&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "man_made": "New Hope Davao Agriculture Inc.",
+        "neighbourhood": "Humayan",
+        "suburb": "Southern Davao",
+        "village": "Datu Abdul Dadia",
+        "city": "Panabo",
+        "state": "Davao del Norte",
+        "ISO3166-2-lvl4": "PH-DAV",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8005",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "New Hope Davao Agriculture Inc., Humayan, Southern Davao, Datu Abdul Dadia, Panabo, Davao del Norte, Davao Region, 8005, Philippines",
+      "osmType": "way",
+      "osmId": 1163032215
+    },
+    {
+      "id": "pacific-oil",
+      "query": {
+        "lat": 7.108335043296951,
+        "lng": 125.6354167831571
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.108335043296951&lon=125.6354167831571&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "neighbourhood": "Summer Hill Village",
+        "quarter": "Alfonso Angliongto Sr.",
+        "city_district": "Buhangin District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Summer Hill Village, Alfonso Angliongto Sr., Buhangin District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 114651281
+    },
+    {
+      "id": "perfect-milling",
+      "query": {
+        "lat": 7.47593638296684,
+        "lng": 125.84757133782723
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.47593638296684&lon=125.84757133782723&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "man_made": "Perfect Milling Corporation",
+        "road": "Davao-Agusan National Highway",
+        "suburb": "Magdum",
+        "village": "San Agustin",
+        "city": "Tagum",
+        "state": "Davao del Norte",
+        "ISO3166-2-lvl4": "PH-DAV",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8100",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Perfect Milling Corporation, Davao-Agusan National Highway, Magdum, San Agustin, Tagum, Davao del Norte, Davao Region, 8100, Philippines",
+      "osmType": "way",
+      "osmId": 990655163
+    },
+    {
+      "id": "sumifru",
+      "query": {
+        "lat": 7.207242865683329,
+        "lng": 125.64611775924254
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.207242865683329&lon=125.64611775924254&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "man_made": "Sumifru",
+        "road": "Davao-Agusan National Highway",
+        "neighbourhood": "Alingit",
+        "quarter": "Eliong",
+        "suburb": "Tibungco",
+        "city_district": "Bunawan District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8024",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Sumifru, Davao-Agusan National Highway, Alingit, Eliong, Tibungco, Bunawan District, Davao City, Davao Region, 8024, Philippines",
+      "osmType": "way",
+      "osmId": 117027468
+    },
+    {
+      "id": "super-green",
+      "query": {
+        "lat": 7.140554673048146,
+        "lng": 125.65386927999688
+      },
+      "source": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=7.140554673048146&lon=125.65386927999688&zoom=18&addressdetails=1&accept-language=en",
+      "address": {
+        "road": "Kulintang Street",
+        "neighbourhood": "Emi-Vill",
+        "suburb": "Sasa",
+        "city_district": "Buhangin District",
+        "city": "Davao City",
+        "region": "Davao Region",
+        "ISO3166-2-lvl3": "PH-11",
+        "postcode": "8000",
+        "country": "Philippines",
+        "country_code": "ph"
+      },
+      "displayName": "Kulintang Street, Emi-Vill, Sasa, Buhangin District, Davao City, Davao Region, 8000, Philippines",
+      "osmType": "way",
+      "osmId": 34614260
+    }
+  ]
+}

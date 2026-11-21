@@ -14,6 +14,8 @@
 .body dl { margin: 0; font-size: 13px; }
 .body dt { color: #66766c; margin-top: 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
 .body dd { margin: 3px 0 0; overflow-wrap: anywhere; }
+.detailNote { display: block; margin-top: 5px; color: #66766c; font-size: 11px; line-height: 1.4; }
+.detailNote a { color: #2f6b45; text-decoration: underline; text-underline-offset: 2px; }
 .action { width: 100%; border: 0; border-radius: 11px; padding: 11px; margin-top: 16px; background: #a7c641; color: #062f24; font-weight: 600; cursor: default; }
 .close { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f6f5ef; color: #062f24; font-size: 23px; cursor: pointer; }
 .directory { position: absolute; top: 16px; left: 16px; z-index: 4; max-width: calc(100% - 32px); }

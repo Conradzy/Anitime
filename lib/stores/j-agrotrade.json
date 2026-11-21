@@ -5,5 +5,9 @@
   "lng": 125.62165912618926,
   "crop": "Corn",
   "photo": "/uploads/stores%20pictures/agrotrade.jpeg",
-  "phone": null
+  "phone": null,
+  "address": "C. Lizada Street, Barangay Kapitan Tomas Monteverde Sr., Agdao District, Davao City, Philippines",
+  "addressApproximate": true,
+  "addressSource": "https://www.openstreetmap.org/way/23992627",
+  "addressCheckedAt": "2026-11-21"
 }
