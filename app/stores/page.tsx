@@ -8,6 +8,7 @@ import mapStyles from '../deliveries/page.module.css';
 import styles from './page.module.css';
 import { STORES, type Store } from '@/lib/stores';
 import StoreDrawer from '@/components/StoreDrawer';
+import StoreRouteActions from '@/components/StoreRouteActions';
 
 const Map3D = dynamic(() => import('@/components/DeliveryMap3D'), { ssr: false });
 const Map2D = dynamic(() => import('@/components/DeliveryMap'), { ssr: false });
@@ -25,6 +26,7 @@ const CAMERA_CONTROLS = [
 export default function StoresPage() {
   const [mini, setMini] = useState(false);
   const [store, setStore] = useState<Store | null>(null);
+  const [routes, setRoutes] = useState<MapDelivery[]>(EMPTY_ROUTES);
   const [layer, setLayer] = useState<'photo' | 'street'>(HAS_3D ? 'photo' : 'street');
   const mapRef = useRef<DeliveryMapHandle>(null);
 
@@ -35,12 +37,13 @@ export default function StoresPage() {
         <div className={mapStyles.mapArea}>
           <div className={mapStyles.mapWrap}>
             {layer === 'photo' ? (
-              <Map3D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} stores={STORES} onViewStore={setStore} suspended={Boolean(store)} />
+              <Map3D ref={mapRef} deliveries={routes} selectedId={routes[0]?.id ?? ''} onSelect={onSelect} stores={STORES} onViewStore={setStore} suspended={Boolean(store)} />
             ) : (
-              <Map2D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} />
+              <Map2D ref={mapRef} deliveries={routes} selectedId={routes[0]?.id ?? ''} onSelect={onSelect} />
             )}
           </div>
           <div className={styles.toolbox} aria-label="Map controls" role="group">
+            {routes[0] && <div className={styles.routeSummary} role="status"><strong>{routes[0].title}</strong><span>{routes[0].distance} · Road route</span><button type="button" onClick={() => setRoutes(EMPTY_ROUTES)}>Clear route</button></div>}
             {HAS_3D && (
               <div className={mapStyles.layerSwitch} role="group" aria-label="Map layer">
                 <button type="button" onClick={() => setLayer('photo')} aria-pressed={layer === 'photo'} className={layer === 'photo' ? mapStyles.layerBtnOn : mapStyles.layerBtn}>Photorealistic</button>
@@ -62,7 +65,9 @@ export default function StoresPage() {
           </div>
         </div>
       </main>
-      {store && <StoreDrawer key={store.id} store={store} onClose={() => setStore(null)} />}
+      {store && <StoreDrawer key={store.id} store={store} onClose={() => setStore(null)}>
+        <StoreRouteActions store={store} onRoute={route => { setRoutes([route]); setStore(null); }} />
+      </StoreDrawer>}
     </div>
   );
 }
