@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type * as Cesium from 'cesium';
-import { CROP_ICONS, type Store } from '@/lib/stores';
+import type { Store } from '@/lib/stores';
 import StoreCard from './StoreCard';
 import styles from './StoreMap.module.css';
 
@@ -159,9 +159,6 @@ export default function StorePins3D({ viewer, engine, stores, onView }: { viewer
     return () => { remove(); observer.disconnect(); };
   }, [selected, viewer, engine]);
   return <>
-    <details className={styles.directory}><summary>Find a store ({stores.length})</summary><div>{stores.map(store =>
-      <button type="button" key={store.id} onClick={() => { cancelClose(); pinned.current = true; setSelected(store); viewer.camera.flyTo({ destination: engine.Cartesian3.fromDegrees(store.lng, store.lat, 1800) }); }}>{CROP_ICONS[store.crop]} {store.name}</button>
-    )}</div></details>
     {selected && <div ref={panelRef} className={styles.panel}
       onMouseEnter={() => { cancelClose(); overCard.current = true; }}
       onMouseLeave={() => { overCard.current = false; scheduleClose(); }}>
