@@ -11,5 +11,6 @@ import store8 from './stores/multitrade.json';
 import store9 from './stores/new-hope.json';
 import store10 from './stores/davao-south.json';
 import store11 from './stores/perfect-milling.json';
-export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8, store9, store10, store11];
+import store12 from './stores/j-agrotrade.json';
+export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8, store9, store10, store11, store12];
 export const CROP_ICONS: Record<string, string> = { Banana: '🍌', Copra: '🥥', Corn: '🌽', Pineapple: '🍍' };
