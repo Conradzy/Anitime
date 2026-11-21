@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Store } from '@/lib/stores';
 import { CROP_ICONS } from '@/lib/stores';
 import { storePhotos } from '@/lib/store-photos';
+import { storePrice } from '@/lib/store-prices';
 import styles from './StoreDrawer.module.css';
 
 export default function StoreDrawer({ store, onClose, children }: { store: Store; onClose: () => void; children?: ReactNode }) {
@@ -11,6 +12,7 @@ export default function StoreDrawer({ store, onClose, children }: { store: Store
   const [closing, setClosing] = useState(false);
   const [slide, setSlide] = useState(0);
   const photos = storePhotos(store);
+  const { price, reference } = storePrice(store);
   useEffect(() => {
     const element = dialog.current;
     const previous = document.activeElement as HTMLElement | null;
@@ -44,6 +46,12 @@ export default function StoreDrawer({ store, onClose, children }: { store: Store
         <span className={styles.badge}>{CROP_ICONS[store.crop]} Buys {store.crop}</span>
         <h2 id="store-title">{store.name}</h2>
         <dl><dt>Location</dt><dd>{store.address}</dd><dt>Phone number</dt><dd>{store.phone || store.phoneExample || 'Not provided'}</dd></dl>
+        <div className={styles.price}>
+          <span>Demo buying price · {store.crop}</span>
+          <strong>₱{price.toFixed(2)} <small>per kilogram</small></strong>
+          <small>Illustrative price for this school project; confirm actual prices with the shop.</small>
+          <details><summary>Market reference</summary><small>{reference.basis} <a href={reference.url} target="_blank" rel="noopener noreferrer">{reference.label}</a></small></details>
+        </div>
         {children}
       </div>
     </section>
