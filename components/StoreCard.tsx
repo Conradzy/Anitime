@@ -13,7 +13,6 @@ export default function StoreCard({ store, onClose }: { store: Store; onClose?: 
       <h2>{store.name}</h2>
       <dl><dt>Location</dt><dd>{store.address}
         <small className={styles.detailNote}>
-          {store.addressApproximate ? 'Approximate pin location · ' : ''}
           <a href={store.addressSource} target="_blank" rel="noopener noreferrer">{store.addressApproximate ? '© OpenStreetMap contributors' : 'Address source'}</a>
         </small>
       </dd>
