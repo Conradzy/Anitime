@@ -7,14 +7,20 @@ import StoreCard from './StoreCard';
 import styles from './StoreMap.module.css';
 
 function pinImage(crop: string) {
-  const canvas = document.createElement('canvas'); canvas.width = 96; canvas.height = 112;
+  const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 144;
   const c = canvas.getContext('2d')!;
-  c.fillStyle = '#062f24'; c.beginPath(); c.roundRect(4, 4, 88, 88, 20); c.fill();
-  c.beginPath(); c.moveTo(35, 90); c.lineTo(48, 110); c.lineTo(61, 90); c.fill();
-  c.fillStyle = '#f6f5ef'; c.fillRect(22, 34, 52, 38);
-  c.fillStyle = '#a7c641'; c.beginPath(); c.moveTo(18, 34); c.lineTo(26, 20); c.lineTo(70, 20); c.lineTo(78, 34); c.closePath(); c.fill();
-  c.fillStyle = '#062f24'; c.fillRect(29, 46, 14, 26);
-  c.font = '32px sans-serif'; c.fillText(CROP_ICONS[crop] || '🌱', 45, 73);
+  c.shadowColor = '#062f2440'; c.shadowBlur = 10; c.shadowOffsetY = 4;
+  c.fillStyle = '#f6f5ef'; c.beginPath(); c.roundRect(12, 8, 104, 104, 32); c.fill();
+  c.shadowColor = 'transparent';
+  c.strokeStyle = '#062f24'; c.lineWidth = 3; c.stroke();
+  c.fillStyle = '#062f24'; c.beginPath(); c.moveTo(52, 112); c.lineTo(64, 134); c.lineTo(76, 112); c.closePath(); c.fill();
+  c.lineWidth = 5; c.lineJoin = 'round'; c.lineCap = 'round';
+  c.strokeRect(35, 48, 56, 38);
+  c.fillStyle = '#a7c641'; c.beginPath(); c.moveTo(30, 48); c.lineTo(39, 29); c.lineTo(87, 29); c.lineTo(96, 48); c.closePath(); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(51, 31); c.lineTo(48, 48); c.moveTo(74, 31); c.lineTo(77, 48); c.moveTo(48, 85); c.lineTo(48, 63); c.lineTo(62, 63); c.lineTo(62, 85); c.stroke();
+  c.fillStyle = '#e5edcd'; c.beginPath(); c.arc(96, 94, 24, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#f6f5ef'; c.lineWidth = 4; c.stroke();
+  c.font = '28px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(CROP_ICONS[crop] || '🌱', 96, 95);
   return canvas.toDataURL();
 }
 
@@ -28,7 +34,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
     const entities = stores.map(store => {
       if (!images.has(store.crop)) images.set(store.crop, pinImage(store.crop));
       return viewer.entities.add({ id: `store-${store.id}`, position: engine.Cartesian3.fromDegrees(store.lng, store.lat),
-        billboard: { image: images.get(store.crop), width: 44, height: 52, verticalOrigin: engine.VerticalOrigin.BOTTOM,
+        billboard: { image: images.get(store.crop), width: 48, height: 54, verticalOrigin: engine.VerticalOrigin.BOTTOM,
           heightReference: engine.HeightReference.CLAMP_TO_3D_TILE, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     });
     const handler = new engine.ScreenSpaceEventHandler(viewer.canvas);
