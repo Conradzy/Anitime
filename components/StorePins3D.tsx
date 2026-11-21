@@ -28,6 +28,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
   const [selected, setSelected] = useState<Store | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pinned = useRef(false);
+  const pinEntities = useRef<Cesium.Entity[]>([]);
   const cancelClose = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
   useEffect(() => {
     const images = new Map<string, string>();
@@ -37,6 +38,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
         billboard: { image: images.get(store.crop), width: 48, height: 54, verticalOrigin: engine.VerticalOrigin.BOTTOM,
           heightReference: engine.HeightReference.CLAMP_TO_3D_TILE, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     });
+    pinEntities.current = entities;
     const handler = new engine.ScreenSpaceEventHandler(viewer.canvas);
     const find = (position: Cesium.Cartesian2) => {
       const id = viewer.scene.pick(position)?.id?.id;
@@ -57,6 +59,29 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
     viewer.scene.requestRender();
     return () => { cancelClose(); handler.destroy(); if (!viewer.isDestroyed()) { entities.forEach(entity => viewer.entities.remove(entity)); viewer.scene.requestRender(); } };
   }, [viewer, engine, stores]);
+  useEffect(() => {
+    if (viewer.isDestroyed()) return;
+    const start = performance.now();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const pins = pinEntities.current.map(entity => ({
+      entity,
+      from: entity.billboard?.scale?.getValue(viewer.clock.currentTime) ?? 1,
+      to: entity.id === `store-${selected?.id}` ? 1.18 : 1,
+    }));
+    let frame = 0;
+    const animate = (now: number) => {
+      if (viewer.isDestroyed()) return;
+      const progress = reducedMotion ? 1 : Math.min(1, (now - start) / 180);
+      const eased = 1 - (1 - progress) ** 3;
+      for (const pin of pins) if (pin.entity.billboard) {
+        pin.entity.billboard.scale = new engine.ConstantProperty(pin.from + (pin.to - pin.from) * eased);
+      }
+      viewer.scene.requestRender();
+      if (progress < 1) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [selected, viewer, engine, stores]);
   return <>
     <details className={styles.directory}><summary>Find a store ({stores.length})</summary><div>{stores.map(store =>
       <button type="button" key={store.id} onClick={() => { cancelClose(); pinned.current = true; setSelected(store); viewer.camera.flyTo({ destination: engine.Cartesian3.fromDegrees(store.lng, store.lat, 1800) }); }}>{CROP_ICONS[store.crop]} {store.name}</button>
