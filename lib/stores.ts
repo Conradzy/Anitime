@@ -1,4 +1,4 @@
-export type Store = { id: string; name: string; lat: number; lng: number; crop: string; photo: string; phone: string | null; phoneSource?: string; phoneExample?: string; address: string; addressApproximate: boolean; addressSource: string; addressCheckedAt: string };
+export type Store = { id: string; name: string; lat: number; lng: number; crop: string; photo: string; phone: string | null; phoneSource?: string; phoneExample?: string; phoneIsDemo?: boolean; address: string; addressApproximate: boolean; addressSource: string; addressCheckedAt: string };
 import store0 from './stores/marsman-drysdale.json';
 import store1 from './stores/lapanday.json';
 import store2 from './stores/sumifru.json';

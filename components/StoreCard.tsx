@@ -17,9 +17,6 @@ export default function StoreCard({ store, onClose }: { store: Store; onClose?: 
         </small>
       </dd>
         <dt>Phone</dt><dd>{store.phone || store.phoneExample || 'Not provided'}
-          <small className={styles.detailNote}>
-            {store.phone && store.phoneSource ? <a href={store.phoneSource} target="_blank" rel="noopener noreferrer">Published company contact</a> : 'Sample only — real number not provided'}
-          </small>
         </dd></dl>
       <button className={styles.action} type="button" disabled>View store</button>
     </div>
