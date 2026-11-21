@@ -9,5 +9,6 @@ import store6 from './stores/new-davao-oil.json';
 import store7 from './stores/pacific-oil.json';
 import store8 from './stores/multitrade.json';
 import store9 from './stores/new-hope.json';
-export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8, store9];
+import store10 from './stores/davao-south.json';
+export const STORES: Store[] = [store0, store1, store2, store3, store4, store5, store6, store7, store8, store9, store10];
 export const CROP_ICONS: Record<string, string> = { Banana: '🍌', Copra: '🥥', Corn: '🌽', Pineapple: '🍍' };
