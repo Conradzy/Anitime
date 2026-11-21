@@ -5,6 +5,8 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import type * as CesiumNS from 'cesium';
 import type { DeliveryMapHandle, MapDelivery } from '@/components/DeliveryMap';
 import styles from './DeliveryMap3D.module.css';
+import StorePins3D from './StorePins3D';
+import type { Store } from '@/lib/stores';
 
 type CesiumModule = typeof CesiumNS;
 
@@ -698,10 +700,12 @@ const DeliveryMap3D = forwardRef<
   DeliveryMapHandle,
   {
     deliveries: MapDelivery[];
+    stores?: Store[];
     selectedId: string;
     onSelect: (id: string) => void;
   }
->(function DeliveryMap3D({ deliveries, selectedId, onSelect }, ref) {
+>(function DeliveryMap3D({ deliveries, selectedId, onSelect, stores }, ref) {
+  const [storeScene, setStoreScene] = useState<SceneCtx | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const ctxRef = useRef<SceneCtx | null>(null);
 
@@ -763,6 +767,7 @@ const DeliveryMap3D = forwardRef<
       active = k;
       k.listeners.add(sync);
       ctxRef.current = k.ctx;
+      setStoreScene(k.ctx);
       attachKeeper(k, root, bridge);
       // Same selection as when we left → the camera stays where it was.
       applySelection(k.ctx, selectedIdRef.current, 0);
@@ -846,6 +851,7 @@ const DeliveryMap3D = forwardRef<
 
   return (
     <div ref={rootRef} className={styles.root}>
+      {stores && storeScene && <StorePins3D viewer={storeScene.viewer} engine={storeScene.Cesium} stores={stores} />}
       <div ref={tipRef} className={hovered ? styles.tip : styles.tipHidden}>
         {hovered && (
           <>

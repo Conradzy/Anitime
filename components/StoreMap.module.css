@@ -1,0 +1,16 @@
+.panel { position: absolute; top: 16px; right: 16px; z-index: 5; width: min(300px, calc(100% - 32px)); max-height: calc(100% - 160px); overflow: auto; border-radius: 18px; box-shadow: 0 16px 45px #062f2433; }
+.card { position: relative; background: #f6f5ef; color: #062f24; border: 1px solid #062f241f; border-radius: 18px; overflow: hidden; font-family: var(--font-inter-tight), sans-serif; }
+.photo { display: block; width: 100%; height: 150px; object-fit: cover; background: #e9eee0; }
+.body { padding: 16px; }
+.badge { display: inline-flex; gap: 6px; padding: 5px 9px; border-radius: 20px; background: #e5edcd; color: #2f6b45; font-size: 12px; font-weight: 600; }
+.body h2 { margin: 10px 0 14px; font-size: 19px; line-height: 1.2; }
+.body dl { margin: 0; font-size: 13px; }
+.body dt { color: #66766c; margin-top: 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.body dd { margin: 3px 0 0; overflow-wrap: anywhere; }
+.action { width: 100%; border: 0; border-radius: 11px; padding: 11px; margin-top: 16px; background: #a7c641; color: #062f24; font-weight: 600; cursor: default; }
+.close { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f6f5ef; color: #062f24; font-size: 23px; cursor: pointer; }
+.directory { position: absolute; top: 16px; left: 16px; z-index: 4; max-width: calc(100% - 32px); }
+.directory summary { background: #f6f5ef; color: #062f24; padding: 10px 14px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 16px #062f2422; }
+.directory div { max-height: 220px; overflow: auto; background: #f6f5ef; border-radius: 12px; margin-top: 6px; }
+.directory button { display: block; width: 100%; text-align: left; padding: 10px; border: 0; background: transparent; color: #062f24; cursor: pointer; }
+.directory button:hover, .directory button:focus-visible { background: #e5edcd; }

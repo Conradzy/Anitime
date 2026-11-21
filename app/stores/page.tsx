@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/AppSidebar';
 import type { DeliveryMapHandle, MapDelivery } from '@/components/DeliveryMap';
 import mapStyles from '../deliveries/page.module.css';
 import styles from './page.module.css';
+import { STORES } from '@/lib/stores';
 
 const Map3D = dynamic(() => import('@/components/DeliveryMap3D'), { ssr: false });
 const Map2D = dynamic(() => import('@/components/DeliveryMap'), { ssr: false });
@@ -32,7 +33,7 @@ export default function StoresPage() {
         <div className={mapStyles.mapArea}>
           <div className={mapStyles.mapWrap}>
             {layer === 'photo' ? (
-              <Map3D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} />
+              <Map3D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} stores={STORES} />
             ) : (
               <Map2D ref={mapRef} deliveries={EMPTY_ROUTES} selectedId="" onSelect={onSelect} />
             )}
