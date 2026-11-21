@@ -7,18 +7,23 @@ import StoreCard from './StoreCard';
 import styles from './StoreMap.module.css';
 
 function pinImage(crop: string) {
-  const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 144;
+  const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
   const c = canvas.getContext('2d')!;
-  // Transparent storefront, brighter than the region boundary's #A7C641.
-  // A fine dark under-stroke keeps the neon outline legible over pale roofs.
-  const storefront = new Path2D('M20 49L30 21H98L108 49Z M25 50V105H103V50 M46 23L42 49 M65 23V49 M84 23L88 49 M37 104V69H56V104 M53 115L64 132L75 115');
+  // Reference style: solid forest-green tile, lime border and line artwork.
+  c.fillStyle = '#174B28';
+  c.strokeStyle = '#A7C641'; c.lineWidth = 7;
+  c.beginPath(); c.roundRect(7, 7, 114, 114, 34); c.fill(); c.stroke();
+  const storefront = new Path2D('M33 53L40 34H88L95 53Z M38 55V91H90V55 M51 36L48 53 M65 36V53 M78 36L82 53 M49 90V69H63V90');
   c.lineJoin = 'round'; c.lineCap = 'round';
-  c.strokeStyle = '#062f24'; c.lineWidth = 9; c.stroke(storefront);
-  c.shadowColor = '#d9ff8a80'; c.shadowBlur = 5;
-  c.strokeStyle = '#D9FF8A'; c.lineWidth = 5; c.stroke(storefront);
-  c.shadowBlur = 0;
-  c.fillStyle = '#062f24b3'; c.beginPath(); c.roundRect(63, 60, 35, 36, 9); c.fill();
-  c.font = '28px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(CROP_ICONS[crop] || '🌱', 81, 79);
+  c.lineWidth = 4; c.stroke(storefront);
+  // Small monochrome crop emblem in the shop window keeps the palette uniform.
+  const crops: Record<string, string> = {
+    Banana: 'M73 65Q69 82 84 83Q89 80 87 76Q77 80 76 65 M73 65L76 65',
+    Copra: 'M72 72Q78 63 86 72L86 79Q79 88 72 79Z M75 72Q79 76 83 72',
+    Corn: 'M76 68Q80 62 84 68L84 80Q80 87 76 80Z M80 69V80 M73 74L76 82 M87 74L84 82',
+    Pineapple: 'M75 73Q80 68 85 73L85 81Q80 87 75 81Z M80 70L75 64 M80 70V63 M80 70L85 64',
+  };
+  c.lineWidth = 2.5; c.stroke(new Path2D(crops[crop] || crops.Copra));
   return canvas.toDataURL();
 }
 
@@ -43,7 +48,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
     const entities = stores.map(store => {
       if (!images.has(store.crop)) images.set(store.crop, pinImage(store.crop));
       return viewer.entities.add({ id: `store-${store.id}`, position: engine.Cartesian3.fromDegrees(store.lng, store.lat),
-        billboard: { image: images.get(store.crop), width: 48, height: 54, verticalOrigin: engine.VerticalOrigin.BOTTOM,
+        billboard: { image: images.get(store.crop), width: 44, height: 44, verticalOrigin: engine.VerticalOrigin.BOTTOM,
           heightReference: engine.HeightReference.CLAMP_TO_3D_TILE, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     });
     pinEntities.current = entities;
