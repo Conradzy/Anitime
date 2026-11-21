@@ -31,6 +31,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
   const overCard = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const pinEntities = useRef<Cesium.Entity[]>([]);
+  const storeHeights = useRef(new Map<string, number>());
   const cancelClose = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
   const scheduleClose = () => {
     if (timer.current || pinned.current || overCard.current) return;
@@ -51,7 +52,17 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
     const handler = new engine.ScreenSpaceEventHandler(viewer.canvas);
     const find = (position: Cesium.Cartesian2) => {
       const id = viewer.scene.pick(position)?.id?.id;
-      return stores.find(store => `store-${store.id}` === id);
+      const store = stores.find(store => `store-${store.id}` === id);
+      // Read the existing depth buffer once, never render terrain from inside
+      // postRender. sampleHeight there caused extra offscreen renders on hover.
+      if (store && !storeHeights.current.has(store.id) && viewer.scene.pickPositionSupported) {
+        const point = viewer.scene.pickPosition(position);
+        if (point) {
+          const height = engine.Cartographic.fromCartesian(point).height;
+          if (Number.isFinite(height)) storeHeights.current.set(store.id, height);
+        }
+      }
+      return store;
     };
     let lastPick = 0;
     handler.setInputAction((event: { endPosition: Cesium.Cartesian2 }) => {
@@ -75,15 +86,18 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
     const pins = pinEntities.current.map(entity => ({
       entity,
       from: entity.billboard?.scale?.getValue(viewer.clock.currentTime) ?? 1,
-      to: entity.id === `store-${selected?.id}` ? 1.18 : 1,
-    }));
+      to: entity.id === `store-${selected?.id}` ? 1.1 : 1,
+    })).filter(pin => Math.abs(pin.from - pin.to) > 0.001);
+    if (!pins.length) return;
     let frame = 0;
     const animate = (now: number) => {
       if (viewer.isDestroyed()) return;
-      const progress = reducedMotion ? 1 : Math.min(1, (now - start) / 180);
-      const eased = 1 - (1 - progress) ** 3;
+      const progress = reducedMotion ? 1 : Math.min(1, (now - start) / 200);
+      const eased = (1 - Math.cos(Math.PI * progress)) / 2;
       for (const pin of pins) if (pin.entity.billboard) {
-        pin.entity.billboard.scale = new engine.ConstantProperty(pin.from + (pin.to - pin.from) * eased);
+        const scale = pin.from + (pin.to - pin.from) * eased;
+        if (pin.entity.billboard.scale instanceof engine.ConstantProperty) pin.entity.billboard.scale.setValue(scale);
+        else pin.entity.billboard.scale = new engine.ConstantProperty(scale);
       }
       viewer.scene.requestRender();
       if (progress < 1) frame = requestAnimationFrame(animate);
@@ -96,8 +110,7 @@ export default function StorePins3D({ viewer, engine, stores }: { viewer: Cesium
     if (!selected || !panel || viewer.isDestroyed()) return;
     const updatePosition = () => {
       const { scene } = viewer;
-      const location = engine.Cartographic.fromDegrees(selected.lng, selected.lat);
-      const height = scene.sampleHeightSupported ? scene.sampleHeight(location, pinEntities.current) : undefined;
+      const height = storeHeights.current.get(selected.id);
       const world = engine.Cartesian3.fromDegrees(selected.lng, selected.lat, height ?? 0);
       const point = engine.SceneTransforms.worldToWindowCoordinates(scene, world);
       const width = viewer.canvas.clientWidth, viewportHeight = viewer.canvas.clientHeight;
