@@ -492,14 +492,6 @@ export default function AuthPage() {
 
                   {loginError && <p className={styles.inlineError}>{loginError}</p>}
 
-                  <div className={styles.dividerRow}>
-                    <span className={styles.dividerLine} />
-                    <span className={styles.dividerText}>or</span>
-                    <span className={styles.dividerLine} />
-                  </div>
-
-                  <GoogleSignIn mode="login" initialRole={role} keepSignedIn={keepSignedIn} />
-
                   <button
                     type="submit"
                     disabled={isLoggingIn}
@@ -507,6 +499,12 @@ export default function AuthPage() {
                   >
                     {isLoggingIn ? 'Logging in…' : 'Log in'} {!isLoggingIn && <span>→</span>}
                   </button>
+                  <div className={styles.dividerRow}>
+                    <span className={styles.dividerLine} />
+                    <span className={styles.dividerText}>or</span>
+                    <span className={styles.dividerLine} />
+                  </div>
+                  <GoogleSignIn mode="login" initialRole={role} keepSignedIn={keepSignedIn} />
                 </form>
 
                 <p className={styles.footerText}>
