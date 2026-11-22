@@ -65,8 +65,7 @@ export default async function ProfilePage() {
       { label: 'Age', value: profile?.birthdate ? `${ageOf(profile.birthdate)} years old` : null },
       { label: 'Birthday', value: profile?.birthdate ? longDate(profile.birthdate) : null },
       { label: 'Sex', value: profile?.sex ?? null },
-      { label: 'Status', value: status === 'verified' ? 'Verified' : status === 'pending' ? 'Pending review' : 'Unverified' },
-      { label: 'Address', value: addressText, wide: true },
+      { label: 'Address', value: addressText },
     ],
   };
 
