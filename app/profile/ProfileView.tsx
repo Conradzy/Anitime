@@ -106,11 +106,6 @@ export function ProfileView({ data }: { data: ProfileData }) {
       <AppSidebar active="profile" mini={mini} onToggle={() => setMini((m) => !m)} />
 
       <div className={styles.main}>
-        <header>
-          <h1 className={styles.h1}>Account profile</h1>
-          <p className={styles.sub}>Your seller identity as buyers and AniTime verification see it.</p>
-        </header>
-
         <section className={styles.cover}>
           <div className={styles.seigaiha} aria-hidden="true">
             <i />
