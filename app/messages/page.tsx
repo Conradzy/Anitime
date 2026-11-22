@@ -59,6 +59,7 @@ type ChatMessage = {
 };
 
 type ConversationDetail = {
+  storeContact?: { name: string; phone: string | null; callable: boolean } | null;
   id: number;
   role: 'BUYER' | 'SELLER';
   other: Badge | null;
@@ -795,6 +796,9 @@ function MessagesInner() {
                     {detail.other?.fullname ?? detail.other?.name} <VerifiedTag b={detail.other} />
                   </div>
                   {detail.other?.farmName && <div className={styles.farmLine}>{detail.other.farmName}</div>}
+                  {detail.storeContact?.phone && <div className={styles.farmLine}>Store contact: {detail.storeContact.callable
+                    ? <a href={`tel:${detail.storeContact.phone.replace(/[^+\d]/g, '')}`}>{detail.storeContact.phone}</a>
+                    : <span>{detail.storeContact.phone}</span>}</div>}
                   <div className={styles.muted}><Stars b={detail.other} /></div>
                 </div>
                 <div className={styles.listingChip}>

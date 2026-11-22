@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireUser, sellerBadges, serializeOffer } from '@/lib/marketplace';
+import { STORES } from '@/lib/stores';
+import { storeDemoEmail } from '@/lib/store-demo';
 
 /** GET — one chat with its messages, pictures, offer cards and (if any) the
  * transaction an accepted offer started. Opening it marks the other person's
@@ -15,6 +17,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     include: {
       listing: true,
       buyRequest: true,
+      buyer: { select: { email: true } },
       messages: { orderBy: { createdAt: 'asc' }, include: { offer: true, attachments: { orderBy: { id: 'asc' } } } },
       offers: { include: { transaction: true } },
     },
@@ -29,6 +32,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   });
 
   const otherId = c.buyerId === user.id ? c.sellerId : c.buyerId;
+  const store = STORES.find(item => storeDemoEmail(item.id) === c.buyer.email);
   const badges = await sellerBadges([otherId, user.id]);
   // A chat can hold several deals over time (each accepted offer is one). Show
   // the live one if there is one, otherwise the most recent.
@@ -75,6 +79,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     meId: user.id,
     me: badges.get(user.id) ?? null,
     other: badges.get(otherId) ?? null,
+    storeContact: store ? { name: store.name, phone: store.phone || store.phoneExample || null, callable: Boolean(store.phone && !store.phoneIsDemo) } : null,
     listing,
     transaction: tx
       ? {
