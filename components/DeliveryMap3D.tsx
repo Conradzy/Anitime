@@ -161,6 +161,11 @@ function attachWheelZoom(ctx: SceneCtx): () => void {
   const { Cesium, viewer } = ctx;
   const canvas = viewer.canvas;
 
+  const onPointerDown = () => {
+    cancelOrbit(ctx);
+    viewer.camera.cancelFlight();
+  };
+
   const onWheel = (e: WheelEvent) => {
     e.preventDefault();
     let dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1);
@@ -190,7 +195,11 @@ function attachWheelZoom(ctx: SceneCtx): () => void {
   };
 
   canvas.addEventListener('wheel', onWheel, { passive: false });
-  return () => canvas.removeEventListener('wheel', onWheel);
+  canvas.addEventListener('pointerdown', onPointerDown);
+  return () => {
+    canvas.removeEventListener('wheel', onWheel);
+    canvas.removeEventListener('pointerdown', onPointerDown);
+  };
 }
 
 /** Tilts/rotates the view around whatever is at the centre of the screen. */
@@ -210,7 +219,7 @@ function orbit(ctx: SceneCtx, dPitchDeg: number, dHeadingDeg: number) {
   if (!pivot) return;
 
   const target = pivot;
-  const range = Cesium.Cartesian3.distance(cam.position, target);
+  const range = Cesium.Cartesian3.distance(cam.positionWC, target);
   const startPitch = cam.pitch; // radians; negative looks down at the ground
   const startHeading = cam.heading;
   const endPitch = Math.min(Math.max(startPitch + Cesium.Math.toRadians(dPitchDeg), Cesium.Math.toRadians(-85)), Cesium.Math.toRadians(-15));
@@ -227,8 +236,11 @@ function orbit(ctx: SceneCtx, dPitchDeg: number, dHeadingDeg: number) {
       target,
       new Cesium.HeadingPitchRange(startHeading + (endHeading - startHeading) * t, startPitch + (endPitch - startPitch) * t, range)
     );
+    // Release the pivot frame before Cesium processes gestures and bounds.
+    // Explicit rendering also keeps button rotation visible on an idle map.
+    cam.lookAtTransform(Cesium.Matrix4.IDENTITY);
+    viewer.scene.requestRender();
     if (i >= frames) {
-      cam.lookAtTransform(Cesium.Matrix4.IDENTITY);
       return;
     }
     requestAnimationFrame(step);
@@ -332,6 +344,7 @@ function attachKeeper(k: Keeper, root: HTMLElement, bridge: Bridge) {
   if (k.host.parentElement !== root) root.insertBefore(k.host, root.firstChild);
   if (k.credits.parentElement !== root) root.insertBefore(k.credits, k.host.nextSibling);
   k.viewer.useDefaultRenderLoop = true;
+  k.viewer.scene.screenSpaceCameraController.enableInputs = true;
   k.viewer.resize();
   k.viewer.scene.requestRender();
   startHeartbeat(k);
@@ -533,14 +546,20 @@ async function buildKeeper(root: HTMLElement, deliveries: MapDelivery[], selecte
 
   if (v.scene.skyAtmosphere) v.scene.skyAtmosphere.show = true;
 
-  // Drag pans. Wheel / trackpad scroll / trackpad pinch zoom through
-  // attachWheelZoom; touch-screen pinch zooms via Cesium. Tilt and
-  // rotate are on-screen buttons only, so gestures never tilt.
+  // Left drag pans; right/middle drag or Ctrl+left drag orbits the map.
+  // Wheel zoom stays custom, while touch pinch supports zoom and tilt.
   const controller = v.scene.screenSpaceCameraController;
   controller.minimumZoomDistance = MIN_CAMERA_DISTANCE;
   controller.maximumZoomDistance = MAX_CAMERA_HEIGHT;
   controller.enableCollisionDetection = true;
-  controller.enableTilt = false;
+  controller.enableRotate = true;
+  controller.enableTilt = true;
+  controller.tiltEventTypes = [
+    Cesium.CameraEventType.RIGHT_DRAG,
+    Cesium.CameraEventType.MIDDLE_DRAG,
+    Cesium.CameraEventType.PINCH,
+    { eventType: Cesium.CameraEventType.LEFT_DRAG, modifier: Cesium.KeyboardEventModifier.CTRL },
+  ];
   controller.zoomEventTypes = [Cesium.CameraEventType.PINCH];
 
   // Keep the camera over the Philippines.
