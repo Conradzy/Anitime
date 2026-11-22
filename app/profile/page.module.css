@@ -14,7 +14,6 @@
 .coverMark { position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; gap: clamp(10px, 1.6vw, 18px); padding: 24px; filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.45)); }
 .coverLogo { height: clamp(64px, 9vw, 108px); width: auto; border-radius: 22%; background: #f6f5ef; padding: 6px; }
 .coverWord { font-size: clamp(42px, 6.4vw, 92px); line-height: 0.9; font-weight: 800; letter-spacing: -0.05em; color: #fff; white-space: nowrap; }
-.coverTag { position: absolute; z-index: 4; left: 20px; top: 18px; background: rgba(6, 47, 36, 0.5); border: 1px solid rgba(167, 198, 65, 0.4); border-radius: 999px; padding: 7px 13px; font-size: 12px; font-weight: 600; color: #e7f0db; backdrop-filter: blur(4px); }
 @media (prefers-reduced-motion: reduce) { .seigaiha > i { animation: none; } }
 
 /* columns */

@@ -119,7 +119,6 @@ export function ProfileView({ data }: { data: ProfileData }) {
             <Image src="/brand/logo-256.png" alt="" width={96} height={96} className={styles.coverLogo} priority />
             <span className={styles.coverWord}>AniTime</span>
           </div>
-          <div className={styles.coverTag}>Standard AniTime cover</div>
         </section>
 
         <div data-pcols="" className={styles.cols}>
