@@ -9,6 +9,7 @@ import styles from './page.module.css';
 import { STORES, type Store } from '@/lib/stores';
 import StoreDrawer from '@/components/StoreDrawer';
 import StoreRouteActions from '@/components/StoreRouteActions';
+import StoreMessageAction from '@/components/StoreMessageAction';
 
 const Map3D = dynamic(() => import('@/components/DeliveryMap3D'), { ssr: false });
 const Map2D = dynamic(() => import('@/components/DeliveryMap'), { ssr: false });
@@ -66,6 +67,7 @@ export default function StoresPage() {
         </div>
       </main>
       {store && <StoreDrawer key={store.id} store={store} onClose={() => setStore(null)}>
+        <StoreMessageAction store={store} />
         <StoreRouteActions store={store} onRoute={route => { setRoutes([route]); setStore(null); }} />
       </StoreDrawer>}
     </div>
