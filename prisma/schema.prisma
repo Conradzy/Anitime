@@ -43,6 +43,7 @@ model User {
   product      String
   email        String  @unique
   passwordHash String
+  googleId     String? @unique
 
   role      UserRole   @default(SELLER)
   buyerTier BuyerTier? // only set for buyers
@@ -80,6 +81,15 @@ model User {
   identityVerifications IdentityVerification[]
   verificationConsents  VerificationConsent[]
   savedPaymentMethods   UserPaymentMethod[]
+}
+
+// Short-lived, browser-bound Google sign-in challenges. Consumed once on success.
+model GoogleSignInChallenge {
+  id        String   @id
+  expiresAt DateTime
+  attempts  Int      @default(0)
+
+  @@index([expiresAt])
 }
 
 // Short-lived email verification codes (registration, and re-verification on

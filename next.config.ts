@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
   // they can't corrupt the dev server's cache.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   outputFileTracingIncludes: { '/*': ['./routing-data/*.json.gz'] },
+  serverExternalPackages: ['google-auth-library'],
+  async headers() {
+    return [{ source: '/auth', headers: [
+      { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+    ] }];
+  },
 };
 
 export default nextConfig;
