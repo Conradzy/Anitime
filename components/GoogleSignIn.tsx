@@ -56,12 +56,13 @@ export default function GoogleSignIn({ mode, initialRole, keepSignedIn }: { mode
         google.accounts.id.initialize({ client_id: config.clientId, nonce: config.nonce, auto_select: false,
           callback: result => { if (!controller.signal.aborted) handler.current(result.credential); } });
         button.current.replaceChildren();
+        let renderedWidth = 0;
         const render = () => {
           if (!button.current || !buttonFrame.current) return;
-          const availableWidth = buttonFrame.current.clientWidth;
-          const width = Math.min(400, availableWidth || 300);
-          button.current.style.width = `${width}px`;
-          button.current.style.setProperty('--google-scale-x', String(availableWidth / width || 1));
+          const width = Math.min(400, Math.floor(buttonFrame.current.clientWidth));
+          if (!width || width === renderedWidth) return;
+          renderedWidth = width;
+          button.current.replaceChildren();
           google.accounts.id.renderButton(button.current, { type: 'standard', theme: 'outline', size: 'large', text: mode === 'login' ? 'continue_with' : 'signup_with', width });
         };
         render();
@@ -85,16 +86,7 @@ export default function GoogleSignIn({ mode, initialRole, keepSignedIn }: { mode
   return <div className={styles.root}>
     <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onReady={() => setLoaded(true)} onError={() => setError('Google could not load. Check your connection or use email and password.')} />
     <div ref={buttonFrame} className={`${styles.buttonFrame} ${mode === 'register' ? styles.registerButton : ''} ${busy || !ready ? styles.disabled : ''}`} inert={busy || !ready}>
-      <div className={styles.buttonFace} aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 48 48" focusable="false">
-          <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z" />
-          <path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.1c-1.8 1.2-4.1 1.9-6.9 1.9-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z" />
-          <path fill="#FBBC05" d="M12.6 27.5a12 12 0 0 1 0-7V15H5.8a20 20 0 0 0 0 18l6.8-5.5z" />
-          <path fill="#EA4335" d="M24 12.1c3 0 5.6 1 7.7 3l5.8-5.8A19.3 19.3 0 0 0 24 4 20 20 0 0 0 5.8 15l6.8 5.5C14.2 15.7 18.7 12.1 24 12.1z" />
-        </svg>
-        <span>{mode === 'login' ? 'Continue with Google' : 'Sign up with Google'}</span>
-      </div>
-      {/* The real Google control receives pointer and keyboard input, preserving its popup flow. */}
+      {/* Keep the supported Google control visible and directly clickable. */}
       <div ref={button} className={styles.googleControl} />
     </div>
     {!ready && !error && <small>Loading Google sign-in…</small>}

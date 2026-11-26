@@ -1,14 +1,9 @@
 .root { width:100%; display:grid; justify-items:center; gap:8px; }
 .root > div { width:100%; }
-.buttonFrame { position:relative; height:48px; box-sizing:border-box; overflow:hidden; border:1px solid rgba(6,47,36,.34); border-radius:14px; background:#fff; color:#062f24; transition:transform .3s ease,box-shadow .3s ease; }
-.buttonFrame:hover:not(.disabled) { transform:translateY(-2px); box-shadow:0 12px 22px -16px rgba(6,47,36,.5); }
+.buttonFrame { min-height:48px; box-sizing:border-box; display:flex; align-items:center; justify-content:center; border:1px solid rgba(6,47,36,.34); border-radius:14px; background:#fff; color:#062f24; }
 .buttonFrame:focus-within { outline:2px solid #062f24; outline-offset:3px; }
-.buttonFace { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:9px; font-size:14.5px; font-weight:600; letter-spacing:-.01em; pointer-events:none; }
-.registerButton { height:54px; border-radius:16px; }
-.registerButton .buttonFace { font-size:15.5px; }
-.googleControl { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(var(--google-scale-x,1),1.2); opacity:0; }
-.registerButton .googleControl { transform:translate(-50%,-50%) scale(var(--google-scale-x,1),1.35); }
-@media (prefers-reduced-motion:reduce) { .buttonFrame { transition:none; } }
+.registerButton { min-height:54px; border-radius:16px; }
+.googleControl { display:flex; justify-content:center; width:100%; min-width:0; }
 .root small { color:#53675c; }
 .disabled { opacity:.55; pointer-events:none; }
 .dialog { width:min(440px,calc(100% - 32px)); max-height:calc(100dvh - 40px); padding:28px; border:0; border-radius:22px; color:#062f24; background:#f6f5ef; box-shadow:0 20px 80px #062f2444; }
