@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter_Tight } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-const interTight = Inter_Tight({
-  subsets: ['latin'],
-  weight: ['200', '300', '400', '500', '600', '700', '800'],
-  style: ['normal', 'italic'],
+const interTight = localFont({
+  src: [
+    { path: './fonts/InterTight.ttf', weight: '100 900', style: 'normal' },
+    { path: './fonts/InterTight-Italic.ttf', weight: '100 900', style: 'italic' },
+  ],
   variable: '--font-inter-tight',
   display: 'swap',
 });
